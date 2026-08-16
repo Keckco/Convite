@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Painel administrativo do Chá de Casa Nova"
+    >
+
+    <title>Painel Administrativo | Chá de Casa Nova</title>
+
+
+    <!-- GOOGLE FONTS -->
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <!-- CSS -->
+
+<link rel="stylesheet" href="/admin-assets/admin.css">
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         CABEÇALHO
+    ====================================================== -->
+
+    <header class="admin-header">
+
+        <div class="header-content">
+
+
+            <div class="logo">
+
+                <span class="logo-icon">
+                    🏠
+                </span>
+
+                <div>
+
+                    <strong>
+                        Chá de Casa Nova
+                    </strong>
+
+                    <span>
+                        Painel administrativo
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="header-actions">
+
+
+                <a
+                    href="/"
+                    class="view-site"
+                >
+
+                    ← Ver convite
+
+                </a>
+
+
+                <button
+                    type="button"
+                    id="refreshButton"
+                    class="refresh-button"
+                >
+
+                    ↻ Atualizar
+
+                </button>
+
+
+            </div>
+
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =====================================================
+         CONTEÚDO
+    ====================================================== -->
+
+    <main class="admin-main">
+
+
+        <!-- =================================================
+             INTRODUÇÃO
+        ================================================== -->
+
+        <section class="page-intro">
+
+            <div>
+
+                <span>
+                    VISÃO GERAL
+                </span>
+
+                <h1>
+                    Olá! 👋
+                </h1>
+
+                <p>
+                    Aqui você pode acompanhar
+                    tudo sobre o seu evento.
+                </p>
+
+            </div>
+
+
+            <div
+                class="last-update"
+                id="lastUpdate"
+            >
+
+                Carregando...
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             ESTATÍSTICAS
+        ================================================== -->
+
+        <section class="stats-grid">
+
+
+            <!-- TOTAL -->
+
+            <article class="stat-card">
+
+                <div class="stat-icon guests">
+                    👥
+                </div>
+
+                <div>
+
+                    <span>
+                        Total de convidados
+                    </span>
+
+                    <strong id="totalGuests">
+                        0
+                    </strong>
+
+                </div>
+
+            </article>
+
+
+
+            <!-- CONFIRMADOS -->
+
+            <article class="stat-card">
+
+                <div class="stat-icon confirmed">
+                    ✓
+                </div>
+
+                <div>
+
+                    <span>
+                        Confirmados
+                    </span>
+
+                    <strong id="confirmedGuests">
+                        0
+                    </strong>
+
+                </div>
+
+            </article>
+
+
+
+            <!-- RECUSADOS -->
+
+            <article class="stat-card">
+
+                <div class="stat-icon declined">
+                    ×
+                </div>
+
+                <div>
+
+                    <span>
+                        Não poderão ir
+                    </span>
+
+                    <strong id="declinedGuests">
+                        0
+                    </strong>
+
+                </div>
+
+            </article>
+
+
+
+            <!-- PRESENTES -->
+
+            <article class="stat-card">
+
+                <div class="stat-icon gifts">
+                    🎁
+                </div>
+
+                <div>
+
+                    <span>
+                        Presentes escolhidos
+                    </span>
+
+                    <strong id="chosenGifts">
+                        0
+                    </strong>
+
+                </div>
+
+            </article>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             CONVIDADOS
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+
+            <div class="section-header">
+
+
+                <div>
+
+                    <span>
+                        CONVIDADOS
+                    </span>
+
+                    <h2>
+                        Lista de convidados
+                    </h2>
+
+                </div>
+
+
+                <div class="search-box">
+
+                    <span>
+                        🔍
+                    </span>
+
+                    <input
+                        type="text"
+                        id="guestSearch"
+                        placeholder="Procurar nome..."
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+            </div>
+
+
+
+            <div class="table-container">
+
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Nome
+                            </th>
+
+                            <th>
+                                Presença
+                            </th>
+
+                            <th>
+                                Presente
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody
+                        id="guestsTable"
+                    ></tbody>
+
+                </table>
+
+
+                <div
+                    class="empty-state"
+                    id="emptyGuests"
+                >
+
+                    <span>
+                        👥
+                    </span>
+
+                    <p>
+                        Nenhum convidado encontrado.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             PRESENTES
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <span>
+                        LISTA DE PRESENTES
+                    </span>
+
+                    <h2>
+                        O que os convidados vão levar
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="gifts-grid"
+                id="giftsGrid"
+            ></div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             MENSAGENS
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <span>
+                        CARINHO DOS CONVIDADOS
+                    </span>
+
+                    <h2>
+                        Mensagens
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="messages-grid"
+                id="messagesGrid"
+            ></div>
+
+
+            <div
+                class="empty-state"
+                id="emptyMessages"
+            >
+
+                <span>
+                    💌
+                </span>
+
+                <p>
+                    Nenhuma mensagem ainda.
+                </p>
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+<script src="/admin-assets/admin.js"></script>
+
+</body>
+
+</html>

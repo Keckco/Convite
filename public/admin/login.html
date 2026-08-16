@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Login do painel administrativo"
+    >
+
+    <title>Login | Chá de Casa Nova</title>
+
+
+    <!-- FONTE -->
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <!-- CSS -->
+
+<link rel="stylesheet" href="/admin-assets/login.css">
+
+</head>
+
+
+<body>
+
+
+    <main class="login-page">
+
+
+        <section class="login-card">
+
+
+            <!-- ÍCONE -->
+
+            <div class="login-icon">
+                🏠
+            </div>
+
+
+            <!-- TÍTULO -->
+
+            <div class="login-header">
+
+                <span>
+                    CHÁ DE CASA NOVA
+                </span>
+
+                <h1>
+                    Painel administrativo
+                </h1>
+
+                <p>
+                    Entre para acessar o painel do evento.
+                </p>
+
+            </div>
+
+
+            <!-- FORMULÁRIO -->
+
+            <form id="loginForm">
+
+
+                <div class="form-group">
+
+                    <label for="username">
+                        Usuário
+                    </label>
+
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="Digite seu usuário"
+                        autocomplete="username"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="password">
+                        Senha
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Digite sua senha"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    id="loginButton"
+                >
+
+                    Entrar
+
+                </button>
+
+
+                <!-- ERRO -->
+
+                <p
+                    id="loginError"
+                    class="login-error"
+                ></p>
+
+
+            </form>
+
+
+            <!-- VOLTAR -->
+
+            <a
+                href="/"
+                class="back-link"
+            >
+
+                ← Voltar para o convite
+
+            </a>
+
+
+        </section>
+
+
+    </main>
+
+
+    <!-- JAVASCRIPT -->
+
+   <script src="/admin-assets/login.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,1108 @@
+/* =====================================================
+   RESET
+===================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+body {
+
+    font-family:
+        "DM Sans",
+        sans-serif;
+
+    background:
+        #f7f5f2;
+
+    color:
+        #292522;
+
+    min-height:
+        100vh;
+
+}
+
+
+/* =====================================================
+   CABEÇALHO
+===================================================== */
+
+.admin-header {
+
+    background:
+        #ffffff;
+
+    border-bottom:
+        1px solid #e8e3dd;
+
+    position:
+        sticky;
+
+    top:
+        0;
+
+    z-index:
+        100;
+
+}
+
+
+.header-content {
+
+    max-width:
+        1250px;
+
+    margin:
+        auto;
+
+    padding:
+        18px 25px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        20px;
+
+}
+
+
+.logo {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        12px;
+
+}
+
+
+.logo-icon {
+
+    width:
+        46px;
+
+    height:
+        46px;
+
+    border-radius:
+        12px;
+
+    background:
+        #eee7df;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    font-size:
+        22px;
+
+}
+
+
+.logo div {
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+}
+
+
+.logo strong {
+
+    font-family:
+        "Playfair Display",
+        serif;
+
+    font-size:
+        18px;
+
+}
+
+
+.logo span {
+
+    font-size:
+        12px;
+
+    color:
+        #817970;
+
+}
+
+
+.header-actions {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        10px;
+
+}
+
+
+.view-site,
+.refresh-button {
+
+    border:
+        1px solid #ded7cf;
+
+    background:
+        white;
+
+    color:
+        #4f443b;
+
+    padding:
+        10px 15px;
+
+    border-radius:
+        9px;
+
+    font-family:
+        inherit;
+
+    font-size:
+        14px;
+
+    text-decoration:
+        none;
+
+    cursor:
+        pointer;
+
+    transition:
+        .2s;
+
+}
+
+
+.view-site:hover,
+.refresh-button:hover {
+
+    background:
+        #f5f1ed;
+
+}
+
+
+
+/* =====================================================
+   CONTEÚDO
+===================================================== */
+
+.admin-main {
+
+    max-width:
+        1250px;
+
+    margin:
+        auto;
+
+    padding:
+        45px 25px 70px;
+
+}
+
+
+.page-intro {
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        flex-end;
+
+    margin-bottom:
+        30px;
+
+}
+
+
+.page-intro > div:first-child > span {
+
+    font-size:
+        11px;
+
+    letter-spacing:
+        2px;
+
+    color:
+        #92785f;
+
+    font-weight:
+        700;
+
+}
+
+
+.page-intro h1 {
+
+    font-family:
+        "Playfair Display",
+        serif;
+
+    font-size:
+        42px;
+
+    margin:
+        5px 0;
+
+}
+
+
+.page-intro p {
+
+    color:
+        #777069;
+
+}
+
+
+.last-update {
+
+    font-size:
+        13px;
+
+    color:
+        #8a827b;
+
+}
+
+
+
+/* =====================================================
+   ESTATÍSTICAS
+===================================================== */
+
+.stats-grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap:
+        18px;
+
+    margin-bottom:
+        35px;
+
+}
+
+
+.stat-card {
+
+    background:
+        white;
+
+    border:
+        1px solid #e9e3dc;
+
+    border-radius:
+        15px;
+
+    padding:
+        22px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        15px;
+
+}
+
+
+.stat-icon {
+
+    width:
+        52px;
+
+    height:
+        52px;
+
+    border-radius:
+        13px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    font-size:
+        21px;
+
+}
+
+
+.stat-icon.guests {
+
+    background:
+        #eee8e1;
+
+}
+
+
+.stat-icon.confirmed {
+
+    background:
+        #e6efe6;
+
+}
+
+
+.stat-icon.declined {
+
+    background:
+        #f2e7e4;
+
+}
+
+
+.stat-icon.gifts {
+
+    background:
+        #eee6ed;
+
+}
+
+
+.stat-card div:last-child {
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        3px;
+
+}
+
+
+.stat-card span {
+
+    color:
+        #837b74;
+
+    font-size:
+        13px;
+
+}
+
+
+.stat-card strong {
+
+    font-size:
+        28px;
+
+}
+
+
+
+/* =====================================================
+   SEÇÕES
+===================================================== */
+
+.dashboard-section {
+
+    background:
+        white;
+
+    border:
+        1px solid #e9e3dc;
+
+    border-radius:
+        16px;
+
+    margin-bottom:
+        25px;
+
+    overflow:
+        hidden;
+
+}
+
+
+.section-header {
+
+    padding:
+        25px;
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        center;
+
+    gap:
+        20px;
+
+}
+
+
+.section-header > div:first-child span {
+
+    font-size:
+        10px;
+
+    letter-spacing:
+        1.7px;
+
+    font-weight:
+        700;
+
+    color:
+        #92785f;
+
+}
+
+
+.section-header h2 {
+
+    font-family:
+        "Playfair Display",
+        serif;
+
+    font-size:
+        24px;
+
+    margin-top:
+        4px;
+
+}
+
+
+
+/* =====================================================
+   PESQUISA
+===================================================== */
+
+.search-box {
+
+    border:
+        1px solid #ded8d1;
+
+    border-radius:
+        9px;
+
+    padding:
+        9px 12px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        8px;
+
+}
+
+
+.search-box input {
+
+    border:
+        0;
+
+    outline:
+        none;
+
+    font-family:
+        inherit;
+
+    font-size:
+        14px;
+
+    width:
+        190px;
+
+}
+
+
+
+/* =====================================================
+   TABELA
+===================================================== */
+
+.table-container {
+
+    overflow-x:
+        auto;
+
+}
+
+
+table {
+
+    width:
+        100%;
+
+    border-collapse:
+        collapse;
+
+}
+
+
+thead {
+
+    background:
+        #faf8f5;
+
+}
+
+
+th {
+
+    text-align:
+        left;
+
+    font-size:
+        12px;
+
+    color:
+        #827a73;
+
+    font-weight:
+        600;
+
+    padding:
+        13px 25px;
+
+    border-top:
+        1px solid #eee9e4;
+
+    border-bottom:
+        1px solid #eee9e4;
+
+}
+
+
+td {
+
+    padding:
+        16px 25px;
+
+    border-bottom:
+        1px solid #f0ece8;
+
+    font-size:
+        14px;
+
+}
+
+
+tbody tr:last-child td {
+
+    border-bottom:
+        0;
+
+}
+
+
+.guest-name {
+
+    font-weight:
+        600;
+
+}
+
+
+.status {
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    gap:
+        5px;
+
+    padding:
+        5px 9px;
+
+    border-radius:
+        20px;
+
+    font-size:
+        12px;
+
+    font-weight:
+        600;
+
+}
+
+
+.status.confirmed {
+
+    background:
+        #e8f1e8;
+
+    color:
+        #456b48;
+
+}
+
+
+.status.declined {
+
+    background:
+        #f4e7e4;
+
+    color:
+        #865b51;
+
+}
+
+
+.status.none {
+
+    background:
+        #f1efed;
+
+    color:
+        #827b75;
+
+}
+
+
+.gift-name {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        7px;
+
+}
+
+
+
+/* =====================================================
+   PRESENTES
+===================================================== */
+
+.gifts-grid {
+
+    padding:
+        0 25px 25px;
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap:
+        15px;
+
+}
+
+
+.gift-admin-card {
+
+    border:
+        1px solid #e8e2dc;
+
+    border-radius:
+        12px;
+
+    padding:
+        18px;
+
+}
+
+
+.gift-admin-top {
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        center;
+
+    margin-bottom:
+        14px;
+
+}
+
+
+.gift-admin-title {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        10px;
+
+    font-weight:
+        600;
+
+}
+
+
+.gift-admin-icon {
+
+    font-size:
+        24px;
+
+}
+
+
+.gift-admin-count {
+
+    font-size:
+        12px;
+
+    color:
+        #857d76;
+
+}
+
+
+.people-list {
+
+    display:
+        flex;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        7px;
+
+}
+
+
+.person-tag {
+
+    background:
+        #f3efeb;
+
+    padding:
+        6px 10px;
+
+    border-radius:
+        20px;
+
+    font-size:
+        12px;
+
+}
+
+
+.no-person {
+
+    font-size:
+        13px;
+
+    color:
+        #99918a;
+
+    font-style:
+        italic;
+
+}
+
+
+
+/* =====================================================
+   MENSAGENS
+===================================================== */
+
+.messages-grid {
+
+    padding:
+        0 25px 25px;
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap:
+        15px;
+
+}
+
+
+.message-card {
+
+    background:
+        #faf8f5;
+
+    border:
+        1px solid #eee8e1;
+
+    border-radius:
+        12px;
+
+    padding:
+        18px;
+
+}
+
+
+.message-author {
+
+    font-weight:
+        700;
+
+    margin-bottom:
+        8px;
+
+}
+
+
+.message-text {
+
+    color:
+        #625a54;
+
+    font-size:
+        14px;
+
+    line-height:
+        1.6;
+
+}
+
+
+.message-date {
+
+    color:
+        #9a928a;
+
+    font-size:
+        11px;
+
+    margin-top:
+        12px;
+
+}
+
+
+
+/* =====================================================
+   ESTADO VAZIO
+===================================================== */
+
+.empty-state {
+
+    display:
+        none;
+
+    padding:
+        40px;
+
+    text-align:
+        center;
+
+    color:
+        #918982;
+
+}
+
+
+.empty-state span {
+
+    display:
+        block;
+
+    font-size:
+        30px;
+
+    margin-bottom:
+        8px;
+
+}
+
+
+.empty-state p {
+
+    font-size:
+        14px;
+
+}
+
+
+
+/* =====================================================
+   RESPONSIVO
+===================================================== */
+
+@media (
+    max-width: 900px
+) {
+
+    .stats-grid {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+    }
+
+
+    .gifts-grid,
+    .messages-grid {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+}
+
+
+@media (
+    max-width: 600px
+) {
+
+    .header-content {
+
+        align-items:
+            flex-start;
+
+    }
+
+
+    .header-actions {
+
+        flex-direction:
+            column;
+
+        align-items:
+            stretch;
+
+    }
+
+
+    .view-site,
+    .refresh-button {
+
+        text-align:
+            center;
+
+    }
+
+
+    .admin-main {
+
+        padding:
+            30px 15px 50px;
+
+    }
+
+
+    .page-intro {
+
+        flex-direction:
+            column;
+
+        align-items:
+            flex-start;
+
+        gap:
+            10px;
+
+    }
+
+
+    .page-intro h1 {
+
+        font-size:
+            34px;
+
+    }
+
+
+    .stats-grid {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+
+    .section-header {
+
+        flex-direction:
+            column;
+
+        align-items:
+            flex-start;
+
+    }
+
+
+    .search-box {
+
+        width:
+            100%;
+
+    }
+
+
+    .search-box input {
+
+        width:
+            100%;
+
+    }
+
+}

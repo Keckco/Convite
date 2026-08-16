@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Convite para o nosso chá de casa nova."
+    >
+
+    <meta
+        name="theme-color"
+        content="#faf8f5"
+    >
+
+    <title>Chá de Casa Nova 🏠</title>
+
+    <!-- FONTES -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- CSS -->
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+<body>
+
+    <!-- ========================================
+         HERO
+    ========================================= -->
+
+    <header class="hero">
+
+        <div class="hero-content">
+
+            <span class="small-title">
+                VOCÊ ESTÁ CONVIDADO
+            </span>
+
+            <h1>
+                Chá de<br>
+                <span>Casa Nova</span>
+            </h1>
+
+            <p class="hero-description">
+                Uma nova casa, novos momentos
+                e pessoas especiais para
+                compartilhar tudo isso.
+            </p>
+
+            <a
+                href="#evento"
+                class="hero-button"
+            >
+                Descobrir mais
+                <span>↓</span>
+            </a>
+
+        </div>
+
+        <div class="hero-decoration decoration-1"></div>
+        <div class="hero-decoration decoration-2"></div>
+
+    </header>
+
+
+    <main>
+
+        <!-- ========================================
+             EVENTO
+        ========================================= -->
+
+        <section
+            class="event-section"
+            id="evento"
+        >
+
+            <div class="section-title reveal">
+
+                <span>
+                    UM NOVO COMEÇO
+                </span>
+
+                <h2>
+                    Venha celebrar<br>
+                    com a gente!
+                </h2>
+
+            </div>
+
+
+            <div class="event-grid">
+
+                <article class="event-card reveal">
+
+                    <div class="event-icon">
+                        📅
+                    </div>
+
+                    <h3>
+                        Data
+                    </h3>
+
+                    <p>
+                        05 de Setembro<br>
+                        2026
+                    </p>
+
+                </article>
+
+
+                <article class="event-card reveal">
+
+                    <div class="event-icon">
+                        🕐
+                    </div>
+
+                    <h3>
+                        Horário
+                    </h3>
+
+                    <p>
+                        A partir das<br>
+                        15:00
+                    </p>
+
+                </article>
+
+
+                <article class="event-card reveal">
+
+                    <div class="event-icon">
+                        📍
+                    </div>
+
+                    <h3>
+                        Local
+                    </h3>
+
+                    <p>
+                        Rua Salgado Filho, 1227 - Centro.<br>
+                        Arena Ball<br>
+                        União da Vitória - PR
+                    </p>
+
+                </article>
+
+            </div>
+
+
+            <!-- CONTADOR -->
+
+            <div class="countdown reveal">
+
+                <h3>
+                    Falta pouco...
+                </h3>
+
+                <div class="countdown-container">
+
+                    <div class="countdown-item">
+                        <strong id="days">00</strong>
+                        <span>dias</span>
+                    </div>
+
+                    <div class="countdown-item">
+                        <strong id="hours">00</strong>
+                        <span>horas</span>
+                    </div>
+
+                    <div class="countdown-item">
+                        <strong id="minutes">00</strong>
+                        <span>minutos</span>
+                    </div>
+
+                    <div class="countdown-item">
+                        <strong id="seconds">00</strong>
+                        <span>segundos</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ========================================
+             MENSAGEM
+        ========================================= -->
+
+        <section class="message-section">
+
+            <div class="message reveal">
+
+                <span>
+                    🏠
+                </span>
+
+                <h2>
+                    Nossa casa está<br>
+                    esperando por você.
+                </h2>
+
+                <p>
+                    Mais do que uma casa nova,
+                    estamos começando uma nova
+                    fase da nossa história.
+                    <br><br>
+                    E queremos dividir esse
+                    momento com você.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- ========================================
+             CONFIRMAÇÃO
+        ======================================== -->
+
+        <section
+            class="presence-section"
+            id="presenca"
+        >
+
+            <div class="section-title reveal">
+
+                <span>
+                    ESPERAMOS POR VOCÊ
+                </span>
+
+                <h2>
+                    Você vem?
+                </h2>
+
+                <p>
+                    Confirme sua presença para
+                    nos ajudar a preparar tudo
+                    para esse dia especial.
+                </p>
+
+            </div>
+
+
+            <div class="presence-card reveal">
+
+                <div class="presence-icon">
+                    💌
+                </div>
+
+                <h3>
+                    Confirme sua presença
+                </h3>
+
+                <p>
+                    É rapidinho!
+                </p>
+
+                <input
+                    type="text"
+                    id="presenceName"
+                    class="main-input"
+                    placeholder="Seu nome"
+                    maxlength="30"
+                    autocomplete="name"
+                >
+
+                <div class="presence-buttons">
+
+                    <button
+                        type="button"
+                        class="presence-button yes"
+                        id="confirmPresence"
+                    >
+                        ✓
+                        Sim, estarei lá!
+                    </button>
+
+                    <button
+                        type="button"
+                        class="presence-button no"
+                        id="declinePresence"
+                    >
+                        Não poderei ir
+                    </button>
+
+                </div>
+
+                <div
+                    class="presence-status"
+                    id="presenceStatus"
+                ></div>
+
+            </div>
+
+
+            <div class="presence-stats reveal">
+
+                <div>
+                    <strong id="confirmedCount">
+                        0
+                    </strong>
+
+                    <span>
+                        confirmados
+                    </span>
+                </div>
+
+                <div>
+                    <strong id="declinedCount">
+                        0
+                    </strong>
+
+                    <span>
+                        não poderão ir
+                    </span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ========================================
+             LISTA DE PRESENTES
+        ========================================= -->
+
+        <section
+            class="gifts-section"
+            id="presentes"
+        >
+
+            <div class="section-title reveal">
+
+                <span>
+                    SE QUISER NOS PRESENTEAR
+                </span>
+
+                <h2>
+                    Lista de presentes
+                </h2>
+
+                <p>
+                    Escolha um item que você
+                    gostaria de levar.
+                    <br>
+                    Toda ajuda será muito
+                    bem-vinda! ❤️
+                </p>
+
+            </div>
+
+
+            <div
+                class="gifts-container"
+                id="giftsContainer"
+            ></div>
+
+
+            <!-- ========================================
+                 PIX
+            ========================================= -->
+
+            <div class="pix-card reveal">
+
+                <div class="pix-icon">
+                    💳
+                </div>
+
+                <span class="pix-small-title">
+                    PREFERE OUTRA OPÇÃO?
+                </span>
+
+                <h3>
+                    Presente via PIX
+                </h3>
+
+                <p>
+                    Caso prefira contribuir via PIX,
+                    fique à vontade.
+                    <br>
+                    <strong>
+                        O PIX é opcional e não é necessário
+                        para participar da comemoração.
+                    </strong>
+                </p>
+
+                <div class="pix-notice">
+                    <span>ℹ️</span>
+
+                    <div>
+                        <strong>
+                            Aviso
+                        </strong>
+
+                        <p>
+                            Os dados do PIX serão
+                            disponibilizados separadamente.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ========================================
+             MENSAGENS
+        ========================================= -->
+
+        <section
+            class="guest-message-section"
+            id="mensagem"
+        >
+
+            <div class="section-title reveal">
+
+                <span>
+                    DEIXE UM CARINHO
+                </span>
+
+                <h2>
+                    Uma mensagem para nós ❤️
+                </h2>
+
+                <p>
+                    Se quiser, deixe uma mensagem
+                    para os donos da casa.
+                </p>
+
+            </div>
+
+
+            <div class="message-form reveal">
+
+                <input
+                    type="text"
+                    id="messageName"
+                    class="main-input"
+                    placeholder="Seu nome"
+                    maxlength="30"
+                    autocomplete="name"
+                >
+
+                <textarea
+                    id="guestMessage"
+                    placeholder="Escreva sua mensagem..."
+                    maxlength="250"
+                ></textarea>
+
+                <div class="message-bottom">
+
+                    <span id="characterCount">
+                        0 / 250
+                    </span>
+
+                    <button
+                        type="button"
+                        class="send-message-button"
+                        id="sendMessage"
+                    >
+                        Enviar mensagem ❤️
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="messages-container"
+                id="messagesContainer"
+            ></div>
+
+        </section>
+
+
+        <!-- ========================================
+             LOCALIZAÇÃO
+        ========================================= -->
+
+        <section class="location-section">
+
+            <div class="location-decoration location-circle-1"></div>
+            <div class="location-decoration location-circle-2"></div>
+
+            <div class="location-content reveal">
+
+                <div class="location-pin">
+                    📍
+                </div>
+
+                <span class="location-small-title">
+                    NOSSA NOVA CASA
+                </span>
+
+                <h2>
+                    Esperamos você<br>
+                    por aqui.
+                </h2>
+
+                <p>
+                    Confira a localização
+                    e venha celebrar esse
+                    momento especial com a gente.
+                </p>
+
+                <a
+                    href="#"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="maps-button"
+                    id="mapsButton"
+                >
+
+                    <span class="maps-icon">
+                        🗺️
+                    </span>
+
+                    Ver localização
+
+                    <span class="maps-arrow">
+                        ↗
+                    </span>
+
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ========================================
+         MODAL DE PRESENTE
+    ========================================= -->
+
+    <div
+        class="modal"
+        id="nameModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+    >
+
+        <div class="modal-box">
+
+            <button
+                type="button"
+                class="close-modal"
+                id="closeModal"
+                aria-label="Fechar"
+            >
+                ×
+            </button>
+
+            <span class="modal-icon">
+                🎁
+            </span>
+
+            <h2 id="modalTitle">
+                Você vai levar...
+            </h2>
+
+            <h3 id="selectedGift">
+                Presente
+            </h3>
+
+            <p>
+                Digite seu nome para
+                registrarmos sua escolha.
+            </p>
+
+            <input
+                type="text"
+                id="guestName"
+                placeholder="Seu nome"
+                maxlength="30"
+                autocomplete="name"
+            >
+
+            <button
+                type="button"
+                class="confirm-button"
+                id="confirmGift"
+            >
+                Confirmar escolha
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- TOAST -->
+
+    <div
+        class="toast"
+        id="toast"
+    ></div>
+
+
+    <!-- FOOTER -->
+
+    <footer>
+
+        <p>
+            Feito com ❤️ para celebrar
+            uma nova fase.
+        </p>
+
+    </footer>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
