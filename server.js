@@ -16,7 +16,15 @@ const bcrypt = require("bcryptjs");
 
 const app = express();
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+const SESSION_SECRET =
+    process.env.SESSION_SECRET ||
+    "cha-de-casa-nova-chave-secreta-troque-esta-chave";
+
+const DATABASE_PATH =
+    process.env.DATABASE_PATH ||
+    path.join(__dirname, "database.db");
 
 
 /* =====================================================
@@ -25,12 +33,8 @@ const PORT = 3000;
 
 const ADMIN_USERNAME = "admin";
 
-/*
-   Hash bcrypt da senha do administrador.
-   A senha original NÃO fica armazenada aqui.
-*/
-
-const ADMIN_PASSWORD_HASH = "$2b$12$3nDHztfxZEgHhW3Bf.6mpuunAxV8cX/eZTR7cCOiyB4K2k6fqxkG6";
+const ADMIN_PASSWORD_HASH =
+    "$2b$12$3nDHztfxZEgHhW3Bf.6mpuunAxV8cX/eZTR7cCOiyB4K2k6fqxkG6";
 
 
 /* =====================================================
@@ -43,6 +47,7 @@ app.use(
     })
 );
 
+
 app.use(
     express.urlencoded({
         extended: true
@@ -54,11 +59,13 @@ app.use(
    SESSÃO
 ===================================================== */
 
+app.set("trust proxy", 1);
+
 app.use(
     session({
 
         secret:
-            "cha-de-casa-nova-chave-secreta-troque-esta-chave",
+            SESSION_SECRET,
 
         resave:
             false,
@@ -70,6 +77,12 @@ app.use(
 
             httpOnly:
                 true,
+
+            secure:
+                process.env.NODE_ENV === "production",
+
+            sameSite:
+                "lax",
 
             maxAge:
                 1000 *
@@ -87,12 +100,11 @@ app.use(
    BANCO DE DADOS
 ===================================================== */
 
-const db = new Database(
-    path.join(
-        __dirname,
-        "database.db"
-    )
-);
+const db =
+    new Database(
+        DATABASE_PATH
+    );
+
 
 console.log(
     "Banco de dados conectado."
@@ -119,10 +131,6 @@ db.prepare(`
 
 `).run();
 
-console.log(
-    "Tabela de presenças pronta."
-);
-
 
 /* =====================================================
    TABELA DE PRESENTES
@@ -136,14 +144,56 @@ db.prepare(`
 
         nome TEXT NOT NULL,
 
-        icone TEXT NOT NULL
+        icone TEXT NOT NULL,
+
+        categoria TEXT NOT NULL DEFAULT 'basico'
 
     )
 
 `).run();
 
+
+/* =====================================================
+   ATUALIZAÇÃO DA TABELA DE PRESENTES
+===================================================== */
+
+/*
+   Caso o database.db já exista da versão anterior,
+   adicionamos a coluna categoria automaticamente.
+
+   Não é necessário editar o database.db manualmente.
+*/
+
+const colunasPresentes =
+    db.prepare(
+        "PRAGMA table_info(presentes)"
+    ).all();
+
+
+const possuiCategoria =
+    colunasPresentes.some(
+        coluna =>
+            coluna.name === "categoria"
+    );
+
+
+if (!possuiCategoria) {
+
+    db.prepare(`
+
+        ALTER TABLE presentes
+
+        ADD COLUMN categoria
+        TEXT NOT NULL
+        DEFAULT 'basico'
+
+    `).run();
+
+}
+
+
 console.log(
-    "Tabela de presentes pronta."
+    "Estrutura de presentes atualizada."
 );
 
 
@@ -177,10 +227,6 @@ db.prepare(`
 
 `).run();
 
-console.log(
-    "Tabela de escolhas pronta."
-);
-
 
 /* =====================================================
    TABELA DE MENSAGENS
@@ -202,10 +248,6 @@ db.prepare(`
 
 `).run();
 
-console.log(
-    "Tabela de mensagens pronta."
-);
-
 
 /* =====================================================
    PRESENTES PADRÃO
@@ -213,101 +255,298 @@ console.log(
 
 const presentesPadrao = [
 
+    /* =========================
+       ITENS BÁSICOS
+    ========================= */
+
     {
         id: 1,
-        nome: "Copos",
-        icone: "🥤"
+        nome: "Jogo de copos",
+        icone: "🥤",
+        categoria: "basico"
     },
 
     {
         id: 2,
-        nome: "Pratos",
-        icone: "🍽️"
+        nome: "Ralador",
+        icone: "🧀",
+        categoria: "basico"
     },
 
     {
         id: 3,
-        nome: "Jogo de colheres",
-        icone: "🥄"
+        nome: "Cortador de legumes",
+        icone: "🥕",
+        categoria: "basico"
     },
 
     {
         id: 4,
-        nome: "Panelas",
-        icone: "🍳"
+        nome: "Jogo de peneira",
+        icone: "🥣",
+        categoria: "basico"
     },
 
     {
         id: 5,
-        nome: "Talheres",
-        icone: "🍴"
+        nome: "Escorredor de macarrão",
+        icone: "🍝",
+        categoria: "basico"
     },
 
     {
         id: 6,
-        nome: "Toalhas",
-        icone: "🧺"
+        nome: "Escorredor de arroz",
+        icone: "🍚",
+        categoria: "basico"
     },
 
     {
         id: 7,
-        nome: "Potes",
-        icone: "🥣"
+        nome: "Tábua de corte",
+        icone: "🔪",
+        categoria: "basico"
     },
 
     {
         id: 8,
-        nome: "Canecas",
-        icone: "☕"
+        nome: "Pano de louça",
+        icone: "🧺",
+        categoria: "basico"
     },
 
     {
         id: 9,
-        nome: "Jogo de cama",
-        icone: "🛏️"
+        nome: "Toalha de banho",
+        icone: "🛁",
+        categoria: "basico"
     },
 
     {
         id: 10,
-        nome: "Tapete",
-        icone: "🧶"
+        nome: "Toalha de rosto",
+        icone: "🧖",
+        categoria: "basico"
+    },
+
+    {
+        id: 11,
+        nome: "Forma de bolo",
+        icone: "🍰",
+        categoria: "basico"
+    },
+
+    {
+        id: 12,
+        nome: "Potes plásticos",
+        icone: "🥡",
+        categoria: "basico"
+    },
+
+    {
+        id: 13,
+        nome: "Marinex (tigela de vidro)",
+        icone: "🥣",
+        categoria: "basico"
+    },
+
+    {
+        id: 14,
+        nome: "Escorredor de louça",
+        icone: "🍽️",
+        categoria: "basico"
+    },
+
+    {
+        id: 15,
+        nome: "Chaleira",
+        icone: "🫖",
+        categoria: "basico"
+    },
+
+    {
+        id: 16,
+        nome: "Jarra de vidro",
+        icone: "🫗",
+        categoria: "basico"
+    },
+
+    {
+        id: 17,
+        nome: "Garrafa térmica para café",
+        icone: "☕",
+        categoria: "basico"
+    },
+
+    {
+        id: 18,
+        nome: "Kit de jogo de utensílios para cozinha",
+        icone: "🍴",
+        categoria: "basico"
+    },
+
+    {
+        id: 19,
+        nome: "Descanso de panela",
+        icone: "🍳",
+        categoria: "basico"
+    },
+
+
+    /* =========================
+       ITENS AVANÇADOS
+    ========================= */
+
+    {
+        id: 20,
+        nome: "Chaleira elétrica",
+        icone: "⚡",
+        categoria: "avancado"
+    },
+
+    {
+        id: 21,
+        nome: "Mixer",
+        icone: "🥤",
+        categoria: "avancado"
+    },
+
+    {
+        id: 22,
+        nome: "Air fryer",
+        icone: "🍟",
+        categoria: "avancado"
+    },
+
+    {
+        id: 23,
+        nome: "Mop",
+        icone: "🧹",
+        categoria: "avancado"
+    },
+
+    {
+        id: 24,
+        nome: "Sanduicheira",
+        icone: "🥪",
+        categoria: "avancado"
+    },
+
+    {
+        id: 25,
+        nome: "Cafeteira ou máquina de café",
+        icone: "☕",
+        categoria: "avancado"
+    },
+
+    {
+        id: 26,
+        nome: "Varal de chão",
+        icone: "👕",
+        categoria: "avancado"
+    },
+
+    {
+        id: 27,
+        nome: "Panela de pressão",
+        icone: "🍲",
+        categoria: "avancado"
+    },
+
+    {
+        id: 28,
+        nome: "Pipoqueira ou panela de pipoca",
+        icone: "🍿",
+        categoria: "avancado"
+    },
+
+    {
+        id: 29,
+        nome: "Kit de ferramentas",
+        icone: "🛠️",
+        categoria: "avancado"
     }
 
 ];
 
 
-const inserirPresente = db.prepare(`
+/* =====================================================
+   INSERIR / ATUALIZAR PRESENTES
+===================================================== */
 
-    INSERT OR IGNORE INTO presentes
+const inserirPresente =
+    db.prepare(`
 
-    (
-        id,
-        nome,
-        icone
-    )
+        INSERT OR IGNORE INTO presentes
 
-    VALUES
-    (
-        ?,
-        ?,
-        ?
-    )
+        (
+            id,
+            nome,
+            icone,
+            categoria
+        )
 
-`);
+        VALUES
+        (
+            ?,
+            ?,
+            ?,
+            ?
+        )
+
+    `);
 
 
-for (const presente of presentesPadrao) {
+const atualizarPresente =
+    db.prepare(`
+
+        UPDATE presentes
+
+        SET
+            nome = ?,
+            icone = ?,
+            categoria = ?
+
+        WHERE id = ?
+
+    `);
+
+
+for (
+    const presente
+    of presentesPadrao
+) {
 
     inserirPresente.run(
+
         presente.id,
+
         presente.nome,
-        presente.icone
+
+        presente.icone,
+
+        presente.categoria
+
+    );
+
+
+    atualizarPresente.run(
+
+        presente.nome,
+
+        presente.icone,
+
+        presente.categoria,
+
+        presente.id
+
     );
 
 }
 
+
 console.log(
-    "Presentes padrão carregados."
+    "Lista de presentes atualizada."
 );
 
 
@@ -330,6 +569,7 @@ function requireAdmin(
 
     }
 
+
     return res.status(401).json({
 
         sucesso: false,
@@ -346,16 +586,6 @@ function requireAdmin(
    ARQUIVOS PÚBLICOS
 ===================================================== */
 
-/*
-   IMPORTANTE:
-
-   O express.static NÃO é colocado antes das rotas
-   administrativas.
-
-   Isso impede que /admin/index.html seja aberto
-   diretamente sem passar pela autenticação.
-*/
-
 app.use(
     express.static(
         path.join(
@@ -368,8 +598,9 @@ app.use(
     )
 );
 
+
 /* =====================================================
-   PÁGINA PRINCIPAL DO CONVITE
+   PÁGINA PRINCIPAL
 ===================================================== */
 
 app.get(
@@ -387,26 +618,10 @@ app.get(
     }
 );
 
+
 /* =====================================================
-   ARQUIVOS CSS / JS DO ADMIN
+   ARQUIVOS DO ADMIN
 ===================================================== */
-
-/*
-   Os arquivos dentro de:
-
-   public/admin/
-
-   ficam disponíveis através de:
-
-   /admin-assets/
-
-   Exemplos:
-
-   /admin-assets/login.css
-   /admin-assets/login.js
-   /admin-assets/admin.css
-   /admin-assets/admin.js
-*/
 
 app.use(
     "/admin-assets",
@@ -421,7 +636,7 @@ app.use(
 
 
 /* =====================================================
-   PÁGINA DE LOGIN
+   LOGIN
 ===================================================== */
 
 app.get(
@@ -439,34 +654,14 @@ app.get(
 
         }
 
+
         res.sendFile(
             path.join(
                 __dirname,
                 "public",
                 "admin",
                 "login.html"
-            ),
-            erro => {
-
-                if (erro) {
-
-                    console.error(
-                        "Erro ao abrir login.html:",
-                        erro
-                    );
-
-                    return res.status(500).json({
-
-                        sucesso: false,
-
-                        mensagem:
-                            "Não foi possível abrir a página de login."
-
-                    });
-
-                }
-
-            }
+            )
         );
 
     }
@@ -474,26 +669,17 @@ app.get(
 
 
 /* =====================================================
-   PÁGINA DO PAINEL ADMIN
+   PAINEL ADMIN
 ===================================================== */
 
 app.get(
     "/admin",
     (req, res) => {
 
-        /*
-           Verifica a sessão ANTES de entregar
-           o index.html.
-        */
-
         if (
             !req.session ||
             req.session.adminLogado !== true
         ) {
-
-            console.log(
-                "Acesso ao painel negado. Redirecionando para login."
-            );
 
             return res.redirect(
                 "/admin-login"
@@ -501,29 +687,14 @@ app.get(
 
         }
 
+
         res.sendFile(
             path.join(
                 __dirname,
                 "public",
                 "admin",
                 "index.html"
-            ),
-            erro => {
-
-                if (erro) {
-
-                    console.error(
-                        "Erro ao abrir index.html:",
-                        erro
-                    );
-
-                    return res.status(500).send(
-                        "Não foi possível abrir o painel administrativo."
-                    );
-
-                }
-
-            }
+            )
         );
 
     }
@@ -539,11 +710,6 @@ app.post(
     async (req, res) => {
 
         try {
-
-            console.log(
-                "Tentativa de login recebida."
-            );
-
 
             const {
                 username,
@@ -593,10 +759,6 @@ app.post(
                 usuario !== ADMIN_USERNAME
             ) {
 
-                console.log(
-                    "Usuário incorreto."
-                );
-
                 return res.status(401).json({
 
                     sucesso: false,
@@ -607,11 +769,6 @@ app.post(
                 });
 
             }
-
-
-            console.log(
-                "Usuário correto. Verificando senha..."
-            );
 
 
             const senhaCorreta =
@@ -623,10 +780,6 @@ app.post(
 
             if (!senhaCorreta) {
 
-                console.log(
-                    "Senha incorreta."
-                );
-
                 return res.status(401).json({
 
                     sucesso: false,
@@ -639,13 +792,9 @@ app.post(
             }
 
 
-            console.log(
-                "Senha correta. Criando sessão..."
-            );
-
-
             req.session.adminLogado =
                 true;
+
 
             req.session.adminUsername =
                 ADMIN_USERNAME;
@@ -657,7 +806,6 @@ app.post(
                     if (erro) {
 
                         console.error(
-                            "Erro ao salvar sessão:",
                             erro
                         );
 
@@ -673,11 +821,6 @@ app.post(
                     }
 
 
-                    console.log(
-                        "Login realizado com sucesso."
-                    );
-
-
                     return res.json({
 
                         sucesso: true,
@@ -690,12 +833,14 @@ app.post(
                 }
             );
 
+
         } catch (erro) {
 
             console.error(
                 "ERRO NO LOGIN:",
                 erro
             );
+
 
             return res.status(500).json({
 
@@ -741,6 +886,7 @@ app.get(
 
         }
 
+
         return res.status(401).json({
 
             logado: false,
@@ -768,11 +914,6 @@ app.post(
 
                 if (erro) {
 
-                    console.error(
-                        "Erro no logout:",
-                        erro
-                    );
-
                     return res.status(500).json({
 
                         sucesso: false,
@@ -784,9 +925,11 @@ app.post(
 
                 }
 
+
                 res.clearCookie(
                     "connect.sid"
                 );
+
 
                 return res.json({
 
@@ -805,7 +948,7 @@ app.post(
 
 
 /* =====================================================
-   API DE TESTE
+   API TESTE
 ===================================================== */
 
 app.get(
@@ -826,12 +969,7 @@ app.get(
 
 
 /* =====================================================
-   ================= PRESENÇAS =========================
-===================================================== */
-
-
-/* =====================================================
-   CONFIRMAR / ATUALIZAR PRESENÇA
+   PRESENÇAS
 ===================================================== */
 
 app.post(
@@ -916,20 +1054,15 @@ app.post(
                 );
 
 
-            if (
-                pessoaExistente
-            ) {
+            if (pessoaExistente) {
 
                 db.prepare(`
 
                     UPDATE presencas
 
                     SET
-
                         nome = ?,
-
                         status = ?,
-
                         data = CURRENT_TIMESTAMP
 
                     WHERE id = ?
@@ -986,12 +1119,14 @@ app.post(
 
             });
 
+
         } catch (erro) {
 
             console.error(
                 "Erro ao salvar presença:",
                 erro
             );
+
 
             res.status(500).json({
 
@@ -1022,7 +1157,6 @@ app.get(
                 db.prepare(`
 
                     SELECT
-
                         id,
                         nome,
                         status,
@@ -1039,12 +1173,13 @@ app.get(
                 presencas
             );
 
+
         } catch (erro) {
 
             console.error(
-                "Erro ao buscar presenças:",
                 erro
             );
+
 
             res.status(500).json({
 
@@ -1077,31 +1212,19 @@ app.get(
                     SELECT
 
                         SUM(
-
                             CASE
-
                                 WHEN status = 'confirmed'
-
                                 THEN 1
-
                                 ELSE 0
-
                             END
-
                         ) AS confirmados,
 
                         SUM(
-
                             CASE
-
                                 WHEN status = 'declined'
-
                                 THEN 1
-
                                 ELSE 0
-
                             END
-
                         ) AS recusados
 
                     FROM presencas
@@ -1119,12 +1242,13 @@ app.get(
 
             });
 
+
         } catch (erro) {
 
             console.error(
-                "Erro nas estatísticas:",
                 erro
             );
+
 
             res.status(500).json({
 
@@ -1142,12 +1266,7 @@ app.get(
 
 
 /* =====================================================
-   ================= PRESENTES =========================
-===================================================== */
-
-
-/* =====================================================
-   LISTAR PRESENTES
+   PRESENTES
 ===================================================== */
 
 app.get(
@@ -1167,6 +1286,8 @@ app.get(
 
                         p.icone,
 
+                        p.categoria,
+
                         e.id AS escolha_id,
 
                         e.nome_pessoa,
@@ -1179,7 +1300,8 @@ app.get(
 
                         ON e.presente_id = p.id
 
-                    ORDER BY p.id ASC
+                    ORDER BY
+                        p.id ASC
 
                 `).all();
 
@@ -1188,7 +1310,8 @@ app.get(
 
 
             for (
-                const presente of presentes
+                const presente
+                of presentes
             ) {
 
                 let item =
@@ -1212,7 +1335,11 @@ app.get(
                         icon:
                             presente.icone,
 
-                        people: []
+                        category:
+                            presente.categoria,
+
+                        people:
+                            []
 
                     };
 
@@ -1250,12 +1377,14 @@ app.get(
                 resultado
             );
 
+
         } catch (erro) {
 
             console.error(
                 "Erro ao buscar presentes:",
                 erro
             );
+
 
             res.status(500).json({
 
@@ -1347,7 +1476,6 @@ app.post(
                 db.prepare(`
 
                     SELECT
-
                         id,
                         nome
 
@@ -1398,9 +1526,7 @@ app.post(
                 );
 
 
-            if (
-                escolhaExistente
-            ) {
+            if (escolhaExistente) {
 
                 return res.status(400).json({
 
@@ -1438,14 +1564,6 @@ app.post(
             );
 
 
-            console.log(
-                "Novo presente escolhido:",
-                presente.nome,
-                "-",
-                nomeLimpo
-            );
-
-
             res.json({
 
                 sucesso: true,
@@ -1455,12 +1573,14 @@ app.post(
 
             });
 
+
         } catch (erro) {
 
             console.error(
                 "Erro ao escolher presente:",
                 erro
             );
+
 
             res.status(500).json({
 
@@ -1575,12 +1695,13 @@ app.delete(
 
             });
 
+
         } catch (erro) {
 
             console.error(
-                "Erro ao remover presente:",
                 erro
             );
+
 
             res.status(500).json({
 
@@ -1598,12 +1719,7 @@ app.delete(
 
 
 /* =====================================================
-   ================= MENSAGENS =========================
-===================================================== */
-
-
-/* =====================================================
-   ENVIAR MENSAGEM
+   MENSAGENS
 ===================================================== */
 
 app.post(
@@ -1729,12 +1845,13 @@ app.post(
 
             });
 
+
         } catch (erro) {
 
             console.error(
-                "Erro ao salvar mensagem:",
                 erro
             );
+
 
             res.status(500).json({
 
@@ -1765,7 +1882,6 @@ app.get(
                 db.prepare(`
 
                     SELECT
-
                         id,
                         nome,
                         texto,
@@ -1782,12 +1898,13 @@ app.get(
                 mensagens
             );
 
+
         } catch (erro) {
 
             console.error(
-                "Erro ao buscar mensagens:",
                 erro
             );
+
 
             res.status(500).json({
 
@@ -1802,11 +1919,6 @@ app.get(
 
     }
 );
-
-
-/* =====================================================
-   ================= ROTAS ADMIN =======================
-===================================================== */
 
 
 /* =====================================================
@@ -1828,31 +1940,19 @@ app.get(
                         COUNT(*) AS total,
 
                         SUM(
-
                             CASE
-
                                 WHEN status = 'confirmed'
-
                                 THEN 1
-
                                 ELSE 0
-
                             END
-
                         ) AS confirmados,
 
                         SUM(
-
                             CASE
-
                                 WHEN status = 'declined'
-
                                 THEN 1
-
                                 ELSE 0
-
                             END
-
                         ) AS recusados
 
                     FROM presencas
@@ -1863,7 +1963,8 @@ app.get(
             const presentes =
                 db.prepare(`
 
-                    SELECT COUNT(*) AS total
+                    SELECT
+                        COUNT(*) AS total
 
                     FROM escolhas_presentes
 
@@ -1873,7 +1974,8 @@ app.get(
             const mensagens =
                 db.prepare(`
 
-                    SELECT COUNT(*) AS total
+                    SELECT
+                        COUNT(*) AS total
 
                     FROM mensagens
 
@@ -1905,12 +2007,13 @@ app.get(
 
             });
 
+
         } catch (erro) {
 
             console.error(
-                "Erro no resumo:",
                 erro
             );
+
 
             res.status(500).json({
 
@@ -1955,7 +2058,6 @@ app.get(
                         CASE
 
                             WHEN status = 'confirmed'
-
                             THEN 1
 
                             ELSE 2
@@ -1976,12 +2078,13 @@ app.get(
 
             });
 
+
         } catch (erro) {
 
             console.error(
-                "Erro ao buscar convidados:",
                 erro
             );
+
 
             res.status(500).json({
 
@@ -2020,6 +2123,8 @@ app.get(
 
                         p.icone,
 
+                        p.categoria,
+
                         e.id AS escolha_id,
 
                         e.nome_pessoa,
@@ -2033,6 +2138,15 @@ app.get(
                         ON e.presente_id = p.id
 
                     ORDER BY
+
+                        CASE
+
+                            WHEN p.categoria = 'basico'
+                            THEN 1
+
+                            ELSE 2
+
+                        END,
 
                         p.id ASC,
 
@@ -2067,6 +2181,9 @@ app.get(
 
                             icone:
                                 presente.icone,
+
+                            categoria:
+                                presente.categoria,
 
                             pessoas: []
 
@@ -2112,12 +2229,13 @@ app.get(
 
             });
 
+
         } catch (erro) {
 
             console.error(
-                "Erro ao buscar presentes:",
                 erro
             );
+
 
             res.status(500).json({
 
@@ -2171,12 +2289,13 @@ app.get(
 
             });
 
+
         } catch (erro) {
 
             console.error(
-                "Erro ao buscar mensagens:",
                 erro
             );
+
 
             res.status(500).json({
 
@@ -2261,12 +2380,13 @@ app.delete(
 
             });
 
+
         } catch (erro) {
 
             console.error(
-                "Erro ao remover convidado:",
                 erro
             );
+
 
             res.status(500).json({
 
@@ -2297,7 +2417,8 @@ app.get(
             const presencas =
                 db.prepare(`
 
-                    SELECT COUNT(*) AS total
+                    SELECT
+                        COUNT(*) AS total
 
                     FROM presencas
 
@@ -2307,7 +2428,8 @@ app.get(
             const escolhas =
                 db.prepare(`
 
-                    SELECT COUNT(*) AS total
+                    SELECT
+                        COUNT(*) AS total
 
                     FROM escolhas_presentes
 
@@ -2317,7 +2439,8 @@ app.get(
             const mensagens =
                 db.prepare(`
 
-                    SELECT COUNT(*) AS total
+                    SELECT
+                        COUNT(*) AS total
 
                     FROM mensagens
 
@@ -2340,12 +2463,13 @@ app.get(
 
             });
 
+
         } catch (erro) {
 
             console.error(
-                "Erro ao consultar banco:",
                 erro
             );
+
 
             res.status(500).json({
 
@@ -2370,7 +2494,9 @@ app.use(
     (req, res) => {
 
         if (
-            req.path.startsWith("/api/")
+            req.path.startsWith(
+                "/api/"
+            )
         ) {
 
             return res.status(404).json({
@@ -2404,6 +2530,7 @@ app.use(
             "ERRO NÃO TRATADO:",
             erro
         );
+
 
         res.status(500).json({
 
@@ -2456,20 +2583,6 @@ app.listen(
 
         console.log(
             `Painel admin: http://localhost:${PORT}/admin`
-        );
-
-        console.log("");
-
-        console.log(
-            "API teste: http://localhost:${PORT}/api/teste"
-        );
-
-        console.log(
-            "Login admin: http://localhost:${PORT}/api/admin/login"
-        );
-
-        console.log(
-            "Sessão admin: http://localhost:${PORT}/api/admin/sessao"
         );
 
         console.log("");

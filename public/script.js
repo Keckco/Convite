@@ -8,8 +8,19 @@
    GOOGLE MAPS
 ===================================================== */
 
+/*
+    Local do evento:
+
+    Arena Ball
+    Rua Salgado Filho, 1227 - Centro
+    União da Vitória - PR
+
+    O link abaixo abre diretamente a busca
+    desse endereço no Google Maps.
+*/
+
 const googleMapsURL =
-    "https://www.google.com/maps/";
+    "https://www.google.com/maps/search/?api=1&query=Arena+Ball%2C+Rua+Salgado+Filho%2C+1227%2C+Centro%2C+Uni%C3%A3o+da+Vit%C3%B3ria%2C+PR";
 
 
 const mapsButton =
@@ -18,9 +29,11 @@ const mapsButton =
 
 if (mapsButton) {
 
-    mapsButton.href = googleMapsURL;
+    mapsButton.href =
+        googleMapsURL;
 
 }
+
 
 
 /* =====================================================
@@ -33,6 +46,7 @@ const STORAGE_KEYS = {
         "chaCasaNova_guestName"
 
 };
+
 
 
 /* =====================================================
@@ -111,6 +125,7 @@ const messagesContainer =
     document.getElementById("messagesContainer");
 
 
+
 /* =====================================================
    ESTADO
 ===================================================== */
@@ -123,6 +138,7 @@ let currentGift = null;
 */
 
 const gifts = [];
+
 
 
 /* =====================================================
@@ -162,6 +178,7 @@ fetch("/api/teste")
         );
 
     });
+
 
 
 /* =====================================================
@@ -239,6 +256,7 @@ async function loadGifts() {
     }
 
 }
+
 
 
 /* =====================================================
@@ -426,6 +444,7 @@ function renderGifts() {
 }
 
 
+
 /* =====================================================
    MODAL DE PRESENTE
 ===================================================== */
@@ -514,6 +533,7 @@ if (modal) {
     );
 
 }
+
 
 
 /* =====================================================
@@ -647,6 +667,7 @@ if (confirmGift) {
 }
 
 
+
 /* =====================================================
    REMOVER PRESENTE
 ===================================================== */
@@ -726,6 +747,7 @@ async function removeGiftChoice(
     }
 
 }
+
 
 
 /* =====================================================
@@ -890,6 +912,7 @@ if (declinePresence) {
 }
 
 
+
 /* =====================================================
    STATUS DA PRESENÇA
 ===================================================== */
@@ -937,6 +960,7 @@ function updatePresenceUI(
     }
 
 }
+
 
 
 /* =====================================================
@@ -992,6 +1016,7 @@ async function updatePresenceStats() {
     }
 
 }
+
 
 
 /* =====================================================
@@ -1085,6 +1110,7 @@ async function renderMessages() {
 }
 
 
+
 /* =====================================================
    CONTADOR DE CARACTERES
 ===================================================== */
@@ -1106,6 +1132,7 @@ if (guestMessage) {
     );
 
 }
+
 
 
 /* =====================================================
@@ -1258,6 +1285,7 @@ if (sendMessage) {
 }
 
 
+
 /* =====================================================
    NOME SALVO
 ===================================================== */
@@ -1293,6 +1321,7 @@ function loadSavedName() {
     }
 
 }
+
 
 
 /* =====================================================
@@ -1338,6 +1367,7 @@ function showToast(message) {
         );
 
 }
+
 
 
 /* =====================================================
@@ -1520,6 +1550,7 @@ function updateCountdown() {
 }
 
 
+
 /*
     Atualiza imediatamente
     e depois a cada segundo.
@@ -1532,6 +1563,7 @@ setInterval(
     updateCountdown,
     1000
 );
+
 
 
 /* =====================================================
@@ -1602,6 +1634,7 @@ function observeReveal() {
     );
 
 }
+
 
 
 /* =====================================================
@@ -1721,6 +1754,7 @@ function getRandomConfettiColor() {
 }
 
 
+
 /* =====================================================
    ESCAPE HTML
 ===================================================== */
@@ -1740,6 +1774,7 @@ function escapeHTML(text) {
     return element.innerHTML;
 
 }
+
 
 
 /* =====================================================
@@ -1764,6 +1799,7 @@ document.addEventListener(
 
     }
 );
+
 
 
 /* =====================================================

@@ -956,10 +956,195 @@ section {
 }
 
 
-.gifts-container {
+/* ============================================
+   CABEÇALHOS DAS CATEGORIAS
+============================================ */
+
+/*
+   Os banners de "Itens básicos" e
+   "Itens especiais" ficam centralizados
+   e separados visualmente da lista.
+*/
+
+.gift-category {
+
+    width:
+        100%;
+
+    margin-top:
+        75px;
+
+}
+
+
+.gift-category:first-child {
 
     margin-top:
         70px;
+
+}
+
+
+.gift-category-header {
+
+    width:
+        100%;
+
+    max-width:
+        850px;
+
+    margin:
+        0 auto 35px;
+
+    padding:
+        28px 30px;
+
+    text-align:
+        center;
+
+    border-radius:
+        24px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(140,106,74,.08),
+            rgba(183,151,116,.14)
+        );
+
+    border:
+        1px solid
+        rgba(140,106,74,.13);
+
+    box-shadow:
+        0 12px 35px
+        rgba(41,37,34,.04);
+
+}
+
+
+.gift-category-icon {
+
+    width:
+        58px;
+
+    height:
+        58px;
+
+    margin:
+        0 auto 14px;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    border-radius:
+        50%;
+
+    background:
+        rgba(140,106,74,.12);
+
+    font-size:
+        28px;
+
+}
+
+
+.gift-category-header h2,
+.gift-category-title {
+
+    font-family:
+        "Playfair Display",
+        serif;
+
+    font-size:
+        clamp(28px, 4vw, 38px);
+
+    line-height:
+        1.1;
+
+    margin:
+        0 0 10px;
+
+    color:
+        var(--text);
+
+}
+
+
+.gift-category-header p,
+.gift-category-description {
+
+    max-width:
+        600px;
+
+    margin:
+        0 auto;
+
+    color:
+        var(--text-light);
+
+    font-size:
+        14px;
+
+    line-height:
+        1.7;
+
+}
+
+
+/*
+   Caso o HTML use somente um bloco
+   de texto com essas classes.
+*/
+
+.gift-category > .category-title {
+
+    text-align:
+        center;
+
+    max-width:
+        700px;
+
+    margin:
+        0 auto 35px;
+
+}
+
+
+.category-title h2 {
+
+    font-size:
+        clamp(30px, 4vw, 40px);
+
+    margin-bottom:
+        10px;
+
+}
+
+
+.category-title p {
+
+    color:
+        var(--text-light);
+
+    line-height:
+        1.7;
+
+}
+
+
+
+/* ============================================
+   GRID DOS PRESENTES
+============================================ */
+
+.gifts-container {
+
+    margin-top:
+        0;
 
     display:
         grid;
@@ -972,6 +1157,24 @@ section {
 
 }
 
+
+/*
+   Quando existem categorias, o grid
+   continua funcionando normalmente.
+*/
+
+.gift-category .gifts-container {
+
+    margin-top:
+        0;
+
+}
+
+
+
+/* ============================================
+   CARD DE PRESENTE
+============================================ */
 
 .gift-card {
 
@@ -996,6 +1199,17 @@ section {
 
     overflow:
         hidden;
+
+    /*
+       Faz todos os cards da mesma linha
+       terem a mesma altura.
+    */
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
 
 }
 
@@ -1025,6 +1239,21 @@ section {
 
 .gift-icon {
 
+    width:
+        60px;
+
+    height:
+        60px;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    flex-shrink:
+        0;
+
     font-size:
         40px;
 
@@ -1042,6 +1271,20 @@ section {
     margin-bottom:
         10px;
 
+    /*
+       Altura mínima para que títulos
+       maiores não empurrem o botão.
+    */
+
+    min-height:
+        58px;
+
+    display:
+        flex;
+
+    align-items:
+        flex-start;
+
 }
 
 
@@ -1056,6 +1299,9 @@ section {
     margin-bottom:
         20px;
 
+    min-height:
+        21px;
+
 }
 
 
@@ -1067,14 +1313,35 @@ section {
     flex-wrap:
         wrap;
 
+    align-content:
+        flex-start;
+
     gap:
         7px;
+
+    /*
+       Reserva sempre o mesmo espaço
+       para os nomes.
+    */
 
     min-height:
         30px;
 
     margin-bottom:
         20px;
+
+}
+
+
+/*
+   O botão é empurrado para o final
+   de todos os cards.
+*/
+
+.gift-card .gift-button {
+
+    margin-top:
+        auto;
 
 }
 
@@ -1136,6 +1403,9 @@ section {
     transition:
         .3s;
 
+    min-height:
+        44px;
+
 }
 
 
@@ -1168,6 +1438,36 @@ section {
 
     color:
         white;
+
+}
+
+
+
+/* ============================================
+   CASO O BACKEND COLOQUE AS CATEGORIAS
+   COMO SEÇÕES DENTRO DO MESMO CONTAINER
+============================================ */
+
+#giftsContainer > .gift-category {
+
+    grid-column:
+        1 / -1;
+
+}
+
+
+#giftsContainer > .gift-category + .gift-category {
+
+    margin-top:
+        35px;
+
+}
+
+
+#giftsContainer > .gift-category .gifts-container {
+
+    width:
+        100%;
 
 }
 
@@ -2569,6 +2869,110 @@ footer {
 
         right:
             -280px;
+
+    }
+
+
+    /* ========================================
+       CATEGORIAS DOS PRESENTES - MOBILE
+    ======================================== */
+
+    .gift-category {
+
+        margin-top:
+            55px;
+
+    }
+
+
+    .gift-category:first-child {
+
+        margin-top:
+            55px;
+
+    }
+
+
+    .gift-category-header {
+
+        padding:
+            24px 20px;
+
+        margin-bottom:
+            25px;
+
+        border-radius:
+            20px;
+
+    }
+
+
+    .gift-category-icon {
+
+        width:
+            52px;
+
+        height:
+            52px;
+
+        font-size:
+            24px;
+
+        margin-bottom:
+            12px;
+
+    }
+
+
+    .gift-category-header h2,
+    .gift-category-title {
+
+        font-size:
+            29px;
+
+    }
+
+
+    .gift-category-header p,
+    .gift-category-description {
+
+        font-size:
+            13px;
+
+    }
+
+
+    .gifts-container {
+
+        grid-template-columns:
+            1fr;
+
+        gap:
+            16px;
+
+    }
+
+
+    .gift-card {
+
+        padding:
+            25px;
+
+    }
+
+
+    .gift-card h3 {
+
+        min-height:
+            auto;
+
+    }
+
+
+    .gift-icon {
+
+        margin-bottom:
+            15px;
 
     }
 
