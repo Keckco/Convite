@@ -1,4 +1,3 @@
-```javascript
 /* =====================================================
    CHÁ DE CASA NOVA
    FRONTEND
@@ -8,17 +7,6 @@
 /* =====================================================
    GOOGLE MAPS
 ===================================================== */
-
-/*
-    Local do evento:
-
-    Arena Ball
-    Rua Salgado Filho, 1227 - Centro
-    União da Vitória - PR
-
-    O link abaixo abre diretamente a busca
-    desse endereço no Google Maps.
-*/
 
 const googleMapsURL =
     "https://www.google.com/maps/search/?api=1&query=Arena+Ball%2C+Rua+Salgado+Filho%2C+1227%2C+Centro%2C+Uni%C3%A3o+da+Vit%C3%B3ria%2C+PR";
@@ -36,7 +24,6 @@ if (mapsButton) {
 }
 
 
-
 /* =====================================================
    CONFIGURAÇÕES
 ===================================================== */
@@ -49,21 +36,16 @@ const STORAGE_KEYS = {
 };
 
 
-
 /* =====================================================
    ELEMENTOS
 ===================================================== */
 
 const basicGiftsContainer =
-    document.getElementById(
-        "basicGiftsContainer"
-    );
+    document.getElementById("basicGiftsContainer");
 
 
 const advancedGiftsContainer =
-    document.getElementById(
-        "advancedGiftsContainer"
-    );
+    document.getElementById("advancedGiftsContainer");
 
 
 const modal =
@@ -134,7 +116,6 @@ const messagesContainer =
     document.getElementById("messagesContainer");
 
 
-
 /* =====================================================
    ESTADO
 ===================================================== */
@@ -142,12 +123,7 @@ const messagesContainer =
 let currentGift = null;
 
 
-/*
-    Os presentes vêm do backend.
-*/
-
 const gifts = [];
-
 
 
 /* =====================================================
@@ -189,12 +165,6 @@ fetch("/api/teste")
     });
 
 
-
-/* =====================================================
-   PRESENTES
-===================================================== */
-
-
 /* =====================================================
    CARREGAR PRESENTES
 ===================================================== */
@@ -218,6 +188,12 @@ async function loadGifts() {
 
         const dados =
             await resposta.json();
+
+
+        console.log(
+            "Presentes recebidos do backend:",
+            dados
+        );
 
 
         gifts.length = 0;
@@ -272,7 +248,6 @@ async function loadGifts() {
 }
 
 
-
 /* =====================================================
    RENDERIZAR PRESENTES
 ===================================================== */
@@ -284,6 +259,10 @@ function renderGifts() {
         !advancedGiftsContainer
     ) {
 
+        console.error(
+            "Containers de presentes não encontrados."
+        );
+
         return;
 
     }
@@ -291,16 +270,14 @@ function renderGifts() {
 
     if (basicGiftsContainer) {
 
-        basicGiftsContainer.innerHTML =
-            "";
+        basicGiftsContainer.innerHTML = "";
 
     }
 
 
     if (advancedGiftsContainer) {
 
-        advancedGiftsContainer.innerHTML =
-            "";
+        advancedGiftsContainer.innerHTML = "";
 
     }
 
@@ -390,7 +367,7 @@ function renderGifts() {
 
             <div class="gift-icon">
 
-                ${escapeHTML(gift.icon)}
+                ${gift.icon}
 
             </div>
 
@@ -441,62 +418,65 @@ function renderGifts() {
             );
 
 
-        button.addEventListener(
-            "click",
-            () => {
+        if (button) {
 
-                if (userAlreadySelected) {
+            button.addEventListener(
+                "click",
+                () => {
 
-                    removeGiftChoice(
-                        gift.id,
-                        savedGuestName
-                    );
+                    if (userAlreadySelected) {
 
-                } else {
+                        removeGiftChoice(
+                            gift.id,
+                            savedGuestName
+                        );
 
-                    openGiftModal(
-                        gift.id
-                    );
+                    } else {
+
+                        openGiftModal(
+                            gift.id
+                        );
+
+                    }
 
                 }
+            );
 
-            }
-        );
+        }
 
 
         /*
             IMPORTANTE:
 
-            O PostgreSQL retorna:
+            O backend envia:
 
             category: "basico"
+
+            ou
+
             category: "avancado"
 
-            O HTML possui dois containers:
-
-            basicGiftsContainer
-            advancedGiftsContainer
+            Então colocamos o card
+            no container correspondente.
         */
 
         if (
-            gift.category === "basico"
-        ) {
-
-            if (basicGiftsContainer) {
-
-                basicGiftsContainer.appendChild(
-                    card
-                );
-
-            }
-
-        } else if (
             gift.category === "avancado"
         ) {
 
             if (advancedGiftsContainer) {
 
                 advancedGiftsContainer.appendChild(
+                    card
+                );
+
+            }
+
+        } else {
+
+            if (basicGiftsContainer) {
+
+                basicGiftsContainer.appendChild(
                     card
                 );
 
@@ -510,7 +490,6 @@ function renderGifts() {
     observeReveal();
 
 }
-
 
 
 /* =====================================================
@@ -533,8 +512,12 @@ function openGiftModal(id) {
     }
 
 
-    selectedGift.textContent =
-        currentGift.name;
+    if (selectedGift) {
+
+        selectedGift.textContent =
+            currentGift.name;
+
+    }
 
 
     const savedName =
@@ -543,19 +526,31 @@ function openGiftModal(id) {
         );
 
 
-    guestName.value =
-        savedName || "";
+    if (guestName) {
+
+        guestName.value =
+            savedName || "";
+
+    }
 
 
-    modal.classList.add(
-        "active"
-    );
+    if (modal) {
+
+        modal.classList.add(
+            "active"
+        );
+
+    }
 
 
     setTimeout(
         () => {
 
-            guestName.focus();
+            if (guestName) {
+
+                guestName.focus();
+
+            }
 
         },
         300
@@ -566,9 +561,14 @@ function openGiftModal(id) {
 
 function closeGiftModal() {
 
-    modal.classList.remove(
-        "active"
-    );
+    if (modal) {
+
+        modal.classList.remove(
+            "active"
+        );
+
+    }
+
 
     currentGift = null;
 
@@ -601,7 +601,6 @@ if (modal) {
     );
 
 }
-
 
 
 /* =====================================================
@@ -735,7 +734,6 @@ if (confirmGift) {
 }
 
 
-
 /* =====================================================
    REMOVER PRESENTE
 ===================================================== */
@@ -815,7 +813,6 @@ async function removeGiftChoice(
     }
 
 }
-
 
 
 /* =====================================================
@@ -980,7 +977,6 @@ if (declinePresence) {
 }
 
 
-
 /* =====================================================
    STATUS DA PRESENÇA
 ===================================================== */
@@ -1028,7 +1024,6 @@ function updatePresenceUI(
     }
 
 }
-
 
 
 /* =====================================================
@@ -1084,7 +1079,6 @@ async function updatePresenceStats() {
     }
 
 }
-
 
 
 /* =====================================================
@@ -1178,7 +1172,6 @@ async function renderMessages() {
 }
 
 
-
 /* =====================================================
    CONTADOR DE CARACTERES
 ===================================================== */
@@ -1200,7 +1193,6 @@ if (guestMessage) {
     );
 
 }
-
 
 
 /* =====================================================
@@ -1353,7 +1345,6 @@ if (sendMessage) {
 }
 
 
-
 /* =====================================================
    NOME SALVO
 ===================================================== */
@@ -1389,7 +1380,6 @@ function loadSavedName() {
     }
 
 }
-
 
 
 /* =====================================================
@@ -1437,22 +1427,9 @@ function showToast(message) {
 }
 
 
-
 /* =====================================================
    CONTADOR DO EVENTO
 ===================================================== */
-
-/*
-    DATA DO EVENTO
-
-    5 de setembro de 2026
-    às 15:00
-    horário de Brasília (UTC-3)
-
-    O "-03:00" é importante para que
-    o navegador interprete corretamente
-    o horário no Brasil.
-*/
 
 const eventDate =
     new Date(
@@ -1493,11 +1470,6 @@ function updateCountdown() {
             "seconds"
         );
 
-
-    /*
-        Quando chegar no horário do evento,
-        o contador fica zerado.
-    */
 
     if (distance <= 0) {
 
@@ -1618,12 +1590,6 @@ function updateCountdown() {
 }
 
 
-
-/*
-    Atualiza imediatamente
-    e depois a cada segundo.
-*/
-
 updateCountdown();
 
 
@@ -1631,7 +1597,6 @@ setInterval(
     updateCountdown,
     1000
 );
-
 
 
 /* =====================================================
@@ -1702,7 +1667,6 @@ function observeReveal() {
     );
 
 }
-
 
 
 /* =====================================================
@@ -1822,7 +1786,6 @@ function getRandomConfettiColor() {
 }
 
 
-
 /* =====================================================
    ESCAPE HTML
 ===================================================== */
@@ -1842,7 +1805,6 @@ function escapeHTML(text) {
     return element.innerHTML;
 
 }
-
 
 
 /* =====================================================
@@ -1869,7 +1831,6 @@ document.addEventListener(
 );
 
 
-
 /* =====================================================
    INICIALIZAÇÃO
 ===================================================== */
@@ -1883,4 +1844,3 @@ updatePresenceStats();
 renderMessages();
 
 observeReveal();
-
