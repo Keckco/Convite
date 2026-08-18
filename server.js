@@ -1,11 +1,12 @@
 /* =====================================================
    CHÁ DE CASA NOVA
    BACKEND - SERVER.JS
+   BANCO: POSTGRESQL
 ===================================================== */
 
 const express = require("express");
 const path = require("path");
-const Database = require("better-sqlite3");
+const { Pool } = require("pg");
 const session = require("express-session");
 const bcrypt = require("bcryptjs");
 
@@ -22,9 +23,23 @@ const SESSION_SECRET =
     process.env.SESSION_SECRET ||
     "cha-de-casa-nova-chave-secreta-troque-esta-chave";
 
-const DATABASE_PATH =
-    process.env.DATABASE_PATH ||
-    path.join(__dirname, "database.db");
+const DATABASE_URL =
+    process.env.DATABASE_URL;
+
+
+/* =====================================================
+   VERIFICAÇÃO DO BANCO
+===================================================== */
+
+if (!DATABASE_URL) {
+
+    console.error(
+        "ERRO: DATABASE_URL não foi configurada."
+    );
+
+    process.exit(1);
+
+}
 
 
 /* =====================================================
@@ -97,457 +112,484 @@ app.use(
 
 
 /* =====================================================
-   BANCO DE DADOS
+   POSTGRESQL
 ===================================================== */
 
-const db =
-    new Database(
-        DATABASE_PATH
-    );
+const pool = new Pool({
+
+    connectionString:
+        DATABASE_URL,
+
+    ssl:
+        process.env.NODE_ENV === "production"
+            ? {
+                rejectUnauthorized: false
+            }
+            : false
+
+});
 
 
-console.log(
-    "Banco de dados conectado."
+pool.on(
+    "error",
+    erro => {
+
+        console.error(
+            "Erro inesperado no PostgreSQL:",
+            erro
+        );
+
+    }
 );
 
 
 /* =====================================================
-   TABELA DE PRESENÇAS
+   INICIALIZAÇÃO DO BANCO
 ===================================================== */
 
-db.prepare(`
+async function inicializarBanco() {
 
-    CREATE TABLE IF NOT EXISTS presencas (
-
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        nome TEXT NOT NULL UNIQUE COLLATE NOCASE,
-
-        status TEXT NOT NULL,
-
-        data DATETIME DEFAULT CURRENT_TIMESTAMP
-
-    )
-
-`).run();
-
-
-/* =====================================================
-   TABELA DE PRESENTES
-===================================================== */
-
-db.prepare(`
-
-    CREATE TABLE IF NOT EXISTS presentes (
-
-        id INTEGER PRIMARY KEY,
-
-        nome TEXT NOT NULL,
-
-        icone TEXT NOT NULL,
-
-        categoria TEXT NOT NULL DEFAULT 'basico'
-
-    )
-
-`).run();
-
-
-/* =====================================================
-   ATUALIZAÇÃO DA TABELA DE PRESENTES
-===================================================== */
-
-/*
-   Caso o database.db já exista da versão anterior,
-   adicionamos a coluna categoria automaticamente.
-
-   Não é necessário editar o database.db manualmente.
-*/
-
-const colunasPresentes =
-    db.prepare(
-        "PRAGMA table_info(presentes)"
-    ).all();
-
-
-const possuiCategoria =
-    colunasPresentes.some(
-        coluna =>
-            coluna.name === "categoria"
+    console.log(
+        "Conectando ao PostgreSQL..."
     );
 
 
-if (!possuiCategoria) {
+    await pool.query(
+        "SELECT NOW()"
+    );
 
-    db.prepare(`
+
+    console.log(
+        "Banco de dados conectado."
+    );
+
+
+    /* =================================================
+       TABELA DE PRESENÇAS
+    ================================================= */
+
+    await pool.query(`
+
+        CREATE TABLE IF NOT EXISTS presencas (
+
+            id SERIAL PRIMARY KEY,
+
+            nome TEXT NOT NULL UNIQUE,
+
+            status TEXT NOT NULL,
+
+            data TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+        )
+
+    `);
+
+
+    /* =================================================
+       ÍNDICE PARA NOME SEM DIFERENÇA DE MAIÚSCULAS
+    ================================================= */
+
+    await pool.query(`
+
+        CREATE UNIQUE INDEX IF NOT EXISTS
+        presencas_nome_lower_unique
+
+        ON presencas (
+            LOWER(nome)
+        )
+
+    `);
+
+
+    /* =================================================
+       TABELA DE PRESENTES
+    ================================================= */
+
+    await pool.query(`
+
+        CREATE TABLE IF NOT EXISTS presentes (
+
+            id INTEGER PRIMARY KEY,
+
+            nome TEXT NOT NULL,
+
+            icone TEXT NOT NULL,
+
+            categoria TEXT NOT NULL
+                DEFAULT 'basico'
+
+        )
+
+    `);
+
+
+    /* =================================================
+       GARANTIR COLUNA CATEGORIA
+    ================================================= */
+
+    await pool.query(`
 
         ALTER TABLE presentes
 
-        ADD COLUMN categoria
-        TEXT NOT NULL
+        ADD COLUMN IF NOT EXISTS
+        categoria TEXT NOT NULL
         DEFAULT 'basico'
 
-    `).run();
-
-}
+    `);
 
 
-console.log(
-    "Estrutura de presentes atualizada."
-);
+    console.log(
+        "Estrutura de presentes atualizada."
+    );
 
 
-/* =====================================================
-   TABELA DE ESCOLHAS
-===================================================== */
+    /* =================================================
+       TABELA DE ESCOLHAS
+    ================================================= */
 
-db.prepare(`
+    await pool.query(`
 
-    CREATE TABLE IF NOT EXISTS escolhas_presentes (
+        CREATE TABLE IF NOT EXISTS escolhas_presentes (
 
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
 
-        presente_id INTEGER NOT NULL,
+            presente_id INTEGER NOT NULL,
 
-        nome_pessoa TEXT NOT NULL COLLATE NOCASE,
+            nome_pessoa TEXT NOT NULL,
 
-        data DATETIME DEFAULT CURRENT_TIMESTAMP,
+            data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-        UNIQUE (
-            presente_id,
-            nome_pessoa
-        ),
+            UNIQUE (
+                presente_id,
+                nome_pessoa
+            ),
 
-        FOREIGN KEY (
-            presente_id
+            FOREIGN KEY (
+                presente_id
+            )
+            REFERENCES presentes(id)
+
+            ON DELETE CASCADE
+
         )
-        REFERENCES presentes(id)
 
-    )
-
-`).run();
+    `);
 
 
-/* =====================================================
-   TABELA DE MENSAGENS
-===================================================== */
+    /* =================================================
+       ÍNDICE PARA NOME SEM DIFERENÇA DE MAIÚSCULAS
+    ================================================= */
 
-db.prepare(`
+    await pool.query(`
 
-    CREATE TABLE IF NOT EXISTS mensagens (
+        CREATE UNIQUE INDEX IF NOT EXISTS
+        escolhas_presentes_nome_lower_unique
 
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ON escolhas_presentes (
+            presente_id,
+            LOWER(nome_pessoa)
+        )
 
-        nome TEXT NOT NULL,
-
-        texto TEXT NOT NULL,
-
-        data DATETIME DEFAULT CURRENT_TIMESTAMP
-
-    )
-
-`).run();
+    `);
 
 
-/* =====================================================
-   PRESENTES PADRÃO
-===================================================== */
+    /* =================================================
+       TABELA DE MENSAGENS
+    ================================================= */
 
-const presentesPadrao = [
+    await pool.query(`
 
-    /* =========================
-       ITENS BÁSICOS
-    ========================= */
+        CREATE TABLE IF NOT EXISTS mensagens (
 
-    {
-        id: 1,
-        nome: "Jogo de copos",
-        icone: "🥤",
-        categoria: "basico"
-    },
+            id SERIAL PRIMARY KEY,
 
-    {
-        id: 2,
-        nome: "Ralador",
-        icone: "🧀",
-        categoria: "basico"
-    },
+            nome TEXT NOT NULL,
 
-    {
-        id: 3,
-        nome: "Cortador de legumes",
-        icone: "🥕",
-        categoria: "basico"
-    },
+            texto TEXT NOT NULL,
 
-    {
-        id: 4,
-        nome: "Jogo de peneira",
-        icone: "🥣",
-        categoria: "basico"
-    },
+            data TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
-    {
-        id: 5,
-        nome: "Escorredor de macarrão",
-        icone: "🍝",
-        categoria: "basico"
-    },
+        )
 
-    {
-        id: 6,
-        nome: "Escorredor de arroz",
-        icone: "🍚",
-        categoria: "basico"
-    },
-
-    {
-        id: 7,
-        nome: "Tábua de corte",
-        icone: "🔪",
-        categoria: "basico"
-    },
-
-    {
-        id: 8,
-        nome: "Pano de louça",
-        icone: "🧺",
-        categoria: "basico"
-    },
-
-    {
-        id: 9,
-        nome: "Toalha de banho",
-        icone: "🛁",
-        categoria: "basico"
-    },
-
-    {
-        id: 10,
-        nome: "Toalha de rosto",
-        icone: "🧖",
-        categoria: "basico"
-    },
-
-    {
-        id: 11,
-        nome: "Forma de bolo",
-        icone: "🍰",
-        categoria: "basico"
-    },
-
-    {
-        id: 12,
-        nome: "Potes plásticos",
-        icone: "🥡",
-        categoria: "basico"
-    },
-
-    {
-        id: 13,
-        nome: "Marinex (tigela de vidro)",
-        icone: "🥣",
-        categoria: "basico"
-    },
-
-    {
-        id: 14,
-        nome: "Escorredor de louça",
-        icone: "🍽️",
-        categoria: "basico"
-    },
-
-    {
-        id: 15,
-        nome: "Chaleira",
-        icone: "🫖",
-        categoria: "basico"
-    },
-
-    {
-        id: 16,
-        nome: "Jarra de vidro",
-        icone: "🫗",
-        categoria: "basico"
-    },
-
-    {
-        id: 17,
-        nome: "Garrafa térmica para café",
-        icone: "☕",
-        categoria: "basico"
-    },
-
-    {
-        id: 18,
-        nome: "Kit de jogo de utensílios para cozinha",
-        icone: "🍴",
-        categoria: "basico"
-    },
-
-    {
-        id: 19,
-        nome: "Descanso de panela",
-        icone: "🍳",
-        categoria: "basico"
-    },
+    `);
 
 
-    /* =========================
-       ITENS AVANÇADOS
-    ========================= */
+    /* =================================================
+       PRESENTES PADRÃO
+    ================================================= */
 
-    {
-        id: 20,
-        nome: "Chaleira elétrica",
-        icone: "⚡",
-        categoria: "avancado"
-    },
+    const presentesPadrao = [
 
-    {
-        id: 21,
-        nome: "Mixer",
-        icone: "🥤",
-        categoria: "avancado"
-    },
+        {
+            id: 1,
+            nome: "Jogo de copos",
+            icone: "🥤",
+            categoria: "basico"
+        },
 
-    {
-        id: 22,
-        nome: "Air fryer",
-        icone: "🍟",
-        categoria: "avancado"
-    },
+        {
+            id: 2,
+            nome: "Ralador",
+            icone: "🧀",
+            categoria: "basico"
+        },
 
-    {
-        id: 23,
-        nome: "Mop",
-        icone: "🧹",
-        categoria: "avancado"
-    },
+        {
+            id: 3,
+            nome: "Cortador de legumes",
+            icone: "🥕",
+            categoria: "basico"
+        },
 
-    {
-        id: 24,
-        nome: "Sanduicheira",
-        icone: "🥪",
-        categoria: "avancado"
-    },
+        {
+            id: 4,
+            nome: "Jogo de peneira",
+            icone: "🥣",
+            categoria: "basico"
+        },
 
-    {
-        id: 25,
-        nome: "Cafeteira ou máquina de café",
-        icone: "☕",
-        categoria: "avancado"
-    },
+        {
+            id: 5,
+            nome: "Escorredor de macarrão",
+            icone: "🍝",
+            categoria: "basico"
+        },
 
-    {
-        id: 26,
-        nome: "Varal de chão",
-        icone: "👕",
-        categoria: "avancado"
-    },
+        {
+            id: 6,
+            nome: "Escorredor de arroz",
+            icone: "🍚",
+            categoria: "basico"
+        },
 
-    {
-        id: 27,
-        nome: "Panela de pressão",
-        icone: "🍲",
-        categoria: "avancado"
-    },
+        {
+            id: 7,
+            nome: "Tábua de corte",
+            icone: "🔪",
+            categoria: "basico"
+        },
 
-    {
-        id: 28,
-        nome: "Pipoqueira ou panela de pipoca",
-        icone: "🍿",
-        categoria: "avancado"
-    },
+        {
+            id: 8,
+            nome: "Pano de louça",
+            icone: "🧺",
+            categoria: "basico"
+        },
 
-    {
-        id: 29,
-        nome: "Kit de ferramentas",
-        icone: "🛠️",
-        categoria: "avancado"
+        {
+            id: 9,
+            nome: "Toalha de banho",
+            icone: "🛁",
+            categoria: "basico"
+        },
+
+        {
+            id: 10,
+            nome: "Toalha de rosto",
+            icone: "🧖",
+            categoria: "basico"
+        },
+
+        {
+            id: 11,
+            nome: "Forma de bolo",
+            icone: "🍰",
+            categoria: "basico"
+        },
+
+        {
+            id: 12,
+            nome: "Potes plásticos",
+            icone: "🥡",
+            categoria: "basico"
+        },
+
+        {
+            id: 13,
+            nome: "Marinex (tigela de vidro)",
+            icone: "🥣",
+            categoria: "basico"
+        },
+
+        {
+            id: 14,
+            nome: "Escorredor de louça",
+            icone: "🍽️",
+            categoria: "basico"
+        },
+
+        {
+            id: 15,
+            nome: "Chaleira",
+            icone: "🫖",
+            categoria: "basico"
+        },
+
+        {
+            id: 16,
+            nome: "Jarra de vidro",
+            icone: "🫗",
+            categoria: "basico"
+        },
+
+        {
+            id: 17,
+            nome: "Garrafa térmica para café",
+            icone: "☕",
+            categoria: "basico"
+        },
+
+        {
+            id: 18,
+            nome: "Kit de jogo de utensílios para cozinha",
+            icone: "🍴",
+            categoria: "basico"
+        },
+
+        {
+            id: 19,
+            nome: "Descanso de panela",
+            icone: "🍳",
+            categoria: "basico"
+        },
+
+        {
+            id: 20,
+            nome: "Chaleira elétrica",
+            icone: "⚡",
+            categoria: "avancado"
+        },
+
+        {
+            id: 21,
+            nome: "Mixer",
+            icone: "🥤",
+            categoria: "avancado"
+        },
+
+        {
+            id: 22,
+            nome: "Air fryer",
+            icone: "🍟",
+            categoria: "avancado"
+        },
+
+        {
+            id: 23,
+            nome: "Mop",
+            icone: "🧹",
+            categoria: "avancado"
+        },
+
+        {
+            id: 24,
+            nome: "Sanduicheira",
+            icone: "🥪",
+            categoria: "avancado"
+        },
+
+        {
+            id: 25,
+            nome: "Cafeteira ou máquina de café",
+            icone: "☕",
+            categoria: "avancado"
+        },
+
+        {
+            id: 26,
+            nome: "Varal de chão",
+            icone: "👕",
+            categoria: "avancado"
+        },
+
+        {
+            id: 27,
+            nome: "Panela de pressão",
+            icone: "🍲",
+            categoria: "avancado"
+        },
+
+        {
+            id: 28,
+            nome: "Pipoqueira ou panela de pipoca",
+            icone: "🍿",
+            categoria: "avancado"
+        },
+
+        {
+            id: 29,
+            nome: "Kit de ferramentas",
+            icone: "🛠️",
+            categoria: "avancado"
+        }
+
+    ];
+
+
+    /* =================================================
+       INSERIR / ATUALIZAR PRESENTES
+    ================================================= */
+
+    for (
+        const presente
+        of presentesPadrao
+    ) {
+
+        await pool.query(
+
+            `
+
+            INSERT INTO presentes
+
+            (
+                id,
+                nome,
+                icone,
+                categoria
+            )
+
+            VALUES
+            (
+                $1,
+                $2,
+                $3,
+                $4
+            )
+
+            ON CONFLICT (id)
+
+            DO UPDATE SET
+
+                nome = EXCLUDED.nome,
+
+                icone = EXCLUDED.icone,
+
+                categoria = EXCLUDED.categoria
+
+            `,
+
+            [
+
+                presente.id,
+
+                presente.nome,
+
+                presente.icone,
+
+                presente.categoria
+
+            ]
+
+        );
+
     }
 
-];
 
-
-/* =====================================================
-   INSERIR / ATUALIZAR PRESENTES
-===================================================== */
-
-const inserirPresente =
-    db.prepare(`
-
-        INSERT OR IGNORE INTO presentes
-
-        (
-            id,
-            nome,
-            icone,
-            categoria
-        )
-
-        VALUES
-        (
-            ?,
-            ?,
-            ?,
-            ?
-        )
-
-    `);
-
-
-const atualizarPresente =
-    db.prepare(`
-
-        UPDATE presentes
-
-        SET
-            nome = ?,
-            icone = ?,
-            categoria = ?
-
-        WHERE id = ?
-
-    `);
-
-
-for (
-    const presente
-    of presentesPadrao
-) {
-
-    inserirPresente.run(
-
-        presente.id,
-
-        presente.nome,
-
-        presente.icone,
-
-        presente.categoria
-
-    );
-
-
-    atualizarPresente.run(
-
-        presente.nome,
-
-        presente.icone,
-
-        presente.categoria,
-
-        presente.id
-
+    console.log(
+        "Lista de presentes atualizada."
     );
 
 }
-
-
-console.log(
-    "Lista de presentes atualizada."
-);
 
 
 /* =====================================================
@@ -974,7 +1016,7 @@ app.get(
 
 app.post(
     "/api/rsvp",
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
@@ -1039,47 +1081,64 @@ app.post(
 
 
             const pessoaExistente =
-                db.prepare(`
+                await pool.query(
+
+                    `
 
                     SELECT id
 
                     FROM presencas
 
-                    WHERE nome = ?
+                    WHERE LOWER(nome) = LOWER($1)
 
-                    COLLATE NOCASE
+                    `,
 
-                `).get(
-                    nomeLimpo
+                    [
+                        nomeLimpo
+                    ]
+
                 );
 
 
-            if (pessoaExistente) {
+            if (
+                pessoaExistente.rows.length > 0
+            ) {
 
-                db.prepare(`
+                await pool.query(
+
+                    `
 
                     UPDATE presencas
 
                     SET
-                        nome = ?,
-                        status = ?,
+
+                        nome = $1,
+
+                        status = $2,
+
                         data = CURRENT_TIMESTAMP
 
-                    WHERE id = ?
+                    WHERE id = $3
 
-                `).run(
+                    `,
 
-                    nomeLimpo,
+                    [
 
-                    status,
+                        nomeLimpo,
 
-                    pessoaExistente.id
+                        status,
+
+                        pessoaExistente.rows[0].id
+
+                    ]
 
                 );
 
             } else {
 
-                db.prepare(`
+                await pool.query(
+
+                    `
 
                     INSERT INTO presencas
 
@@ -1090,15 +1149,19 @@ app.post(
 
                     VALUES
                     (
-                        ?,
-                        ?
+                        $1,
+                        $2
                     )
 
-                `).run(
+                    `,
 
-                    nomeLimpo,
+                    [
 
-                    status
+                        nomeLimpo,
+
+                        status
+
+                    ]
 
                 );
 
@@ -1149,14 +1212,15 @@ app.post(
 
 app.get(
     "/api/presencas",
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
-            const presencas =
-                db.prepare(`
+            const resultado =
+                await pool.query(`
 
                     SELECT
+
                         id,
                         nome,
                         status,
@@ -1166,11 +1230,11 @@ app.get(
 
                     ORDER BY id DESC
 
-                `).all();
+                `);
 
 
             res.json(
-                presencas
+                resultado.rows
             );
 
 
@@ -1202,43 +1266,39 @@ app.get(
 
 app.get(
     "/api/presencas/stats",
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
             const resultado =
-                db.prepare(`
+                await pool.query(`
 
                     SELECT
 
-                        SUM(
-                            CASE
-                                WHEN status = 'confirmed'
-                                THEN 1
-                                ELSE 0
-                            END
+                        COUNT(*) FILTER (
+                            WHERE status = 'confirmed'
                         ) AS confirmados,
 
-                        SUM(
-                            CASE
-                                WHEN status = 'declined'
-                                THEN 1
-                                ELSE 0
-                            END
+                        COUNT(*) FILTER (
+                            WHERE status = 'declined'
                         ) AS recusados
 
                     FROM presencas
 
-                `).get();
+                `);
 
 
             res.json({
 
                 confirmados:
-                    resultado.confirmados || 0,
+                    Number(
+                        resultado.rows[0].confirmados
+                    ) || 0,
 
                 recusados:
-                    resultado.recusados || 0
+                    Number(
+                        resultado.rows[0].recusados
+                    ) || 0
 
             });
 
@@ -1271,12 +1331,12 @@ app.get(
 
 app.get(
     "/api/presentes",
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
-            const presentes =
-                db.prepare(`
+            const resultado =
+                await pool.query(`
 
                     SELECT
 
@@ -1303,19 +1363,19 @@ app.get(
                     ORDER BY
                         p.id ASC
 
-                `).all();
+                `);
 
 
-            const resultado = [];
+            const resultadoFinal = [];
 
 
             for (
                 const presente
-                of presentes
+                of resultado.rows
             ) {
 
                 let item =
-                    resultado.find(
+                    resultadoFinal.find(
                         p =>
                             p.id ===
                             presente.id
@@ -1344,7 +1404,7 @@ app.get(
                     };
 
 
-                    resultado.push(
+                    resultadoFinal.push(
                         item
                     );
 
@@ -1374,7 +1434,7 @@ app.get(
 
 
             res.json(
-                resultado
+                resultadoFinal
             );
 
 
@@ -1407,7 +1467,7 @@ app.get(
 
 app.post(
     "/api/presentes/escolher",
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
@@ -1473,22 +1533,31 @@ app.post(
 
 
             const presente =
-                db.prepare(`
+                await pool.query(
+
+                    `
 
                     SELECT
+
                         id,
                         nome
 
                     FROM presentes
 
-                    WHERE id = ?
+                    WHERE id = $1
 
-                `).get(
-                    presenteId
+                    `,
+
+                    [
+                        presenteId
+                    ]
+
                 );
 
 
-            if (!presente) {
+            if (
+                presente.rows.length === 0
+            ) {
 
                 return res.status(404).json({
 
@@ -1503,7 +1572,9 @@ app.post(
 
 
             const escolhaExistente =
-                db.prepare(`
+                await pool.query(
+
+                    `
 
                     SELECT id
 
@@ -1511,22 +1582,27 @@ app.post(
 
                     WHERE
 
-                        presente_id = ?
+                        presente_id = $1
 
-                        AND nome_pessoa = ?
+                        AND LOWER(nome_pessoa) =
+                            LOWER($2)
 
-                        COLLATE NOCASE
+                    `,
 
-                `).get(
+                    [
 
-                    presenteId,
+                        presenteId,
 
-                    nomeLimpo
+                        nomeLimpo
+
+                    ]
 
                 );
 
 
-            if (escolhaExistente) {
+            if (
+                escolhaExistente.rows.length > 0
+            ) {
 
                 return res.status(400).json({
 
@@ -1540,7 +1616,9 @@ app.post(
             }
 
 
-            db.prepare(`
+            await pool.query(
+
+                `
 
                 INSERT INTO escolhas_presentes
 
@@ -1551,15 +1629,19 @@ app.post(
 
                 VALUES
                 (
-                    ?,
-                    ?
+                    $1,
+                    $2
                 )
 
-            `).run(
+                `,
 
-                presenteId,
+                [
 
-                nomeLimpo
+                    presenteId,
+
+                    nomeLimpo
+
+                ]
 
             );
 
@@ -1603,7 +1685,7 @@ app.post(
 
 app.delete(
     "/api/presentes/escolher",
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
@@ -1649,29 +1731,34 @@ app.delete(
 
 
             const resultado =
-                db.prepare(`
+                await pool.query(
+
+                    `
 
                     DELETE FROM escolhas_presentes
 
                     WHERE
 
-                        presente_id = ?
+                        presente_id = $1
 
-                        AND nome_pessoa = ?
+                        AND LOWER(nome_pessoa) =
+                            LOWER($2)
 
-                        COLLATE NOCASE
+                    `,
 
-                `).run(
+                    [
 
-                    presenteId,
+                        presenteId,
 
-                    nome.trim()
+                        nome.trim()
+
+                    ]
 
                 );
 
 
             if (
-                resultado.changes === 0
+                resultado.rowCount === 0
             ) {
 
                 return res.status(404).json({
@@ -1724,7 +1811,7 @@ app.delete(
 
 app.post(
     "/api/mensagens",
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
@@ -1809,7 +1896,9 @@ app.post(
 
 
             const resultado =
-                db.prepare(`
+                await pool.query(
+
+                    `
 
                     INSERT INTO mensagens
 
@@ -1820,15 +1909,21 @@ app.post(
 
                     VALUES
                     (
-                        ?,
-                        ?
+                        $1,
+                        $2
                     )
 
-                `).run(
+                    RETURNING id
 
-                    nomeLimpo,
+                    `,
 
-                    textoLimpo
+                    [
+
+                        nomeLimpo,
+
+                        textoLimpo
+
+                    ]
 
                 );
 
@@ -1838,7 +1933,7 @@ app.post(
                 sucesso: true,
 
                 id:
-                    resultado.lastInsertRowid,
+                    resultado.rows[0].id,
 
                 mensagem:
                     "Mensagem enviada!"
@@ -1874,14 +1969,15 @@ app.post(
 
 app.get(
     "/api/mensagens",
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
-            const mensagens =
-                db.prepare(`
+            const resultado =
+                await pool.query(`
 
                     SELECT
+
                         id,
                         nome,
                         texto,
@@ -1891,11 +1987,11 @@ app.get(
 
                     ORDER BY id DESC
 
-                `).all();
+                `);
 
 
             res.json(
-                mensagens
+                resultado.rows
             );
 
 
@@ -1928,58 +2024,50 @@ app.get(
 app.get(
     "/api/admin/resumo",
     requireAdmin,
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
             const presencas =
-                db.prepare(`
+                await pool.query(`
 
                     SELECT
 
                         COUNT(*) AS total,
 
-                        SUM(
-                            CASE
-                                WHEN status = 'confirmed'
-                                THEN 1
-                                ELSE 0
-                            END
+                        COUNT(*) FILTER (
+                            WHERE status = 'confirmed'
                         ) AS confirmados,
 
-                        SUM(
-                            CASE
-                                WHEN status = 'declined'
-                                THEN 1
-                                ELSE 0
-                            END
+                        COUNT(*) FILTER (
+                            WHERE status = 'declined'
                         ) AS recusados
 
                     FROM presencas
 
-                `).get();
+                `);
 
 
             const presentes =
-                db.prepare(`
+                await pool.query(`
 
                     SELECT
                         COUNT(*) AS total
 
                     FROM escolhas_presentes
 
-                `).get();
+                `);
 
 
             const mensagens =
-                db.prepare(`
+                await pool.query(`
 
                     SELECT
                         COUNT(*) AS total
 
                     FROM mensagens
 
-                `).get();
+                `);
 
 
             res.json({
@@ -1989,21 +2077,31 @@ app.get(
                 convidados: {
 
                     total:
-                        presencas.total || 0,
+                        Number(
+                            presencas.rows[0].total
+                        ) || 0,
 
                     confirmados:
-                        presencas.confirmados || 0,
+                        Number(
+                            presencas.rows[0].confirmados
+                        ) || 0,
 
                     recusados:
-                        presencas.recusados || 0
+                        Number(
+                            presencas.rows[0].recusados
+                        ) || 0
 
                 },
 
                 presentes:
-                    presentes.total || 0,
+                    Number(
+                        presentes.rows[0].total
+                    ) || 0,
 
                 mensagens:
-                    mensagens.total || 0
+                    Number(
+                        mensagens.rows[0].total
+                    ) || 0
 
             });
 
@@ -2037,12 +2135,12 @@ app.get(
 app.get(
     "/api/admin/convidados",
     requireAdmin,
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
-            const convidados =
-                db.prepare(`
+            const resultado =
+                await pool.query(`
 
                     SELECT
 
@@ -2064,9 +2162,9 @@ app.get(
 
                         END,
 
-                        nome COLLATE NOCASE ASC
+                        LOWER(nome) ASC
 
-                `).all();
+                `);
 
 
             res.json({
@@ -2074,7 +2172,7 @@ app.get(
                 sucesso: true,
 
                 convidados:
-                    convidados
+                    resultado.rows
 
             });
 
@@ -2108,12 +2206,12 @@ app.get(
 app.get(
     "/api/admin/presentes",
     requireAdmin,
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
-            const presentes =
-                db.prepare(`
+            const resultado =
+                await pool.query(`
 
                     SELECT
 
@@ -2152,17 +2250,17 @@ app.get(
 
                         e.data ASC
 
-                `).all();
+                `);
 
 
-            const resultado = [];
+            const resultadoFinal = [];
 
 
-            presentes.forEach(
+            resultado.rows.forEach(
                 presente => {
 
                     let item =
-                        resultado.find(
+                        resultadoFinal.find(
                             p =>
                                 p.id ===
                                 presente.id
@@ -2190,7 +2288,7 @@ app.get(
                         };
 
 
-                        resultado.push(
+                        resultadoFinal.push(
                             item
                         );
 
@@ -2225,7 +2323,7 @@ app.get(
                 sucesso: true,
 
                 presentes:
-                    resultado
+                    resultadoFinal
 
             });
 
@@ -2259,12 +2357,12 @@ app.get(
 app.get(
     "/api/admin/mensagens",
     requireAdmin,
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
-            const mensagens =
-                db.prepare(`
+            const resultado =
+                await pool.query(`
 
                     SELECT
 
@@ -2277,7 +2375,7 @@ app.get(
 
                     ORDER BY id DESC
 
-                `).all();
+                `);
 
 
             res.json({
@@ -2285,7 +2383,7 @@ app.get(
                 sucesso: true,
 
                 mensagens:
-                    mensagens
+                    resultado.rows
 
             });
 
@@ -2319,7 +2417,7 @@ app.get(
 app.delete(
     "/api/admin/convidados/:id",
     requireAdmin,
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
@@ -2346,17 +2444,25 @@ app.delete(
 
 
             const resultado =
-                db.prepare(`
+                await pool.query(
+
+                    `
 
                     DELETE FROM presencas
 
-                    WHERE id = ?
+                    WHERE id = $1
 
-                `).run(id);
+                    `,
+
+                    [
+                        id
+                    ]
+
+                );
 
 
             if (
-                resultado.changes === 0
+                resultado.rowCount === 0
             ) {
 
                 return res.status(404).json({
@@ -2410,56 +2516,62 @@ app.delete(
 app.get(
     "/api/banco",
     requireAdmin,
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
             const presencas =
-                db.prepare(`
+                await pool.query(`
 
                     SELECT
                         COUNT(*) AS total
 
                     FROM presencas
 
-                `).get();
+                `);
 
 
             const escolhas =
-                db.prepare(`
+                await pool.query(`
 
                     SELECT
                         COUNT(*) AS total
 
                     FROM escolhas_presentes
 
-                `).get();
+                `);
 
 
             const mensagens =
-                db.prepare(`
+                await pool.query(`
 
                     SELECT
                         COUNT(*) AS total
 
                     FROM mensagens
 
-                `).get();
+                `);
 
 
             res.json({
 
                 banco:
-                    "SQLite",
+                    "PostgreSQL",
 
                 presencas:
-                    presencas.total,
+                    Number(
+                        presencas.rows[0].total
+                    ),
 
                 escolhasPresentes:
-                    escolhas.total,
+                    Number(
+                        escolhas.rows[0].total
+                    ),
 
                 mensagens:
-                    mensagens.total
+                    Number(
+                        mensagens.rows[0].total
+                    )
 
             });
 
@@ -2549,49 +2661,94 @@ app.use(
    INICIAR SERVIDOR
 ===================================================== */
 
-app.listen(
-    PORT,
-    () => {
+async function iniciarServidor() {
 
-        console.log("");
+    try {
 
-        console.log(
+        await inicializarBanco();
+
+
+        app.listen(
+            PORT,
+            () => {
+
+                console.log("");
+
+                console.log(
+                    "======================================"
+                );
+
+                console.log(
+                    "      CHÁ DE CASA NOVA - BACKEND"
+                );
+
+                console.log(
+                    "======================================"
+                );
+
+                console.log("");
+
+                console.log(
+                    `Servidor: http://localhost:${PORT}`
+                );
+
+                console.log(
+                    `Site: http://localhost:${PORT}/`
+                );
+
+                console.log(
+                    `Login admin: http://localhost:${PORT}/admin-login`
+                );
+
+                console.log(
+                    `Painel admin: http://localhost:${PORT}/admin`
+                );
+
+                console.log("");
+
+                console.log(
+                    "Banco: PostgreSQL"
+                );
+
+                console.log(
+                    "Servidor iniciado com sucesso!"
+                );
+
+                console.log("");
+
+            }
+        );
+
+
+    } catch (erro) {
+
+        console.error(
+            ""
+        );
+
+        console.error(
             "======================================"
         );
 
-        console.log(
-            "      CHÁ DE CASA NOVA - BACKEND"
+        console.error(
+            "ERRO AO INICIALIZAR O SERVIDOR"
         );
 
-        console.log(
+        console.error(
             "======================================"
         );
 
-        console.log("");
-
-        console.log(
-            `Servidor: http://localhost:${PORT}`
+        console.error(
+            erro
         );
 
-        console.log(
-            `Site: http://localhost:${PORT}/`
-        );
+        console.error("");
 
-        console.log(
-            `Login admin: http://localhost:${PORT}/admin-login`
-        );
-
-        console.log(
-            `Painel admin: http://localhost:${PORT}/admin`
-        );
-
-        console.log("");
-
-        console.log(
-            "Servidor iniciado com sucesso!"
-        );
-
-        console.log("");
+        process.exit(1);
 
     }
-);
+
+}
+
+
+iniciarServidor();
