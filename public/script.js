@@ -1,3 +1,4 @@
+```javascript
 /* =====================================================
    CHÁ DE CASA NOVA
    FRONTEND
@@ -53,8 +54,16 @@ const STORAGE_KEYS = {
    ELEMENTOS
 ===================================================== */
 
-const giftsContainer =
-    document.getElementById("giftsContainer");
+const basicGiftsContainer =
+    document.getElementById(
+        "basicGiftsContainer"
+    );
+
+
+const advancedGiftsContainer =
+    document.getElementById(
+        "advancedGiftsContainer"
+    );
 
 
 const modal =
@@ -227,11 +236,16 @@ async function loadGifts() {
                 icon:
                     presente.icon,
 
+                category:
+                    presente.category,
+
                 people:
-                    presente.people.map(
-                        pessoa =>
-                            pessoa.name
-                    )
+                    Array.isArray(presente.people)
+                        ? presente.people.map(
+                            pessoa =>
+                                pessoa.name
+                        )
+                        : []
 
             });
 
@@ -265,14 +279,30 @@ async function loadGifts() {
 
 function renderGifts() {
 
-    if (!giftsContainer) {
+    if (
+        !basicGiftsContainer &&
+        !advancedGiftsContainer
+    ) {
 
         return;
 
     }
 
 
-    giftsContainer.innerHTML = "";
+    if (basicGiftsContainer) {
+
+        basicGiftsContainer.innerHTML =
+            "";
+
+    }
+
+
+    if (advancedGiftsContainer) {
+
+        advancedGiftsContainer.innerHTML =
+            "";
+
+    }
 
 
     const savedGuestName =
@@ -360,7 +390,7 @@ function renderGifts() {
 
             <div class="gift-icon">
 
-                ${gift.icon}
+                ${escapeHTML(gift.icon)}
 
             </div>
 
@@ -434,7 +464,45 @@ function renderGifts() {
         );
 
 
-        giftsContainer.appendChild(card);
+        /*
+            IMPORTANTE:
+
+            O PostgreSQL retorna:
+
+            category: "basico"
+            category: "avancado"
+
+            O HTML possui dois containers:
+
+            basicGiftsContainer
+            advancedGiftsContainer
+        */
+
+        if (
+            gift.category === "basico"
+        ) {
+
+            if (basicGiftsContainer) {
+
+                basicGiftsContainer.appendChild(
+                    card
+                );
+
+            }
+
+        } else if (
+            gift.category === "avancado"
+        ) {
+
+            if (advancedGiftsContainer) {
+
+                advancedGiftsContainer.appendChild(
+                    card
+                );
+
+            }
+
+        }
 
     });
 
@@ -1815,3 +1883,4 @@ updatePresenceStats();
 renderMessages();
 
 observeReveal();
+
